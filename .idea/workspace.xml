@@ -15,10 +15,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2599">
+            <state relative-caret-position="-3420">
               <caret line="60" selection-start-line="60" selection-end-line="60" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
@@ -31,8 +31,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../kaggleUnet/dataprepare.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1197">
-              <caret line="63" column="129" selection-start-line="63" selection-start-column="129" selection-end-line="63" selection-end-column="129" />
+            <state relative-caret-position="1140">
+              <caret line="60" column="49" selection-start-line="60" selection-start-column="49" selection-end-line="60" selection-end-column="49" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -40,11 +40,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../kaggleUnet/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="87">
-              <caret line="267" column="74" selection-start-line="267" selection-start-column="74" selection-end-line="267" selection-end-column="74" />
+            <state relative-caret-position="155">
+              <caret line="288" column="46" selection-start-line="288" selection-start-column="46" selection-end-line="288" selection-end-column="46" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#613#780#0" />
@@ -70,7 +70,6 @@
       <find>start_filts</find>
       <find>merge_mode</find>
       <find>import tor</find>
-      <find>class</find>
       <find>3</find>
       <find>channel</find>
       <find>convrelu</find>
@@ -78,9 +77,12 @@
       <find>base_model</find>
       <find>import</find>
       <find>device</find>
-      <find>SimDataset</find>
-      <find>depth</find>
       <find>64</find>
+      <find>batch_idx</find>
+      <find>class</find>
+      <find>SimDataset</find>
+      <find>UNet</find>
+      <find>depth</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -97,11 +99,10 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="1440" />
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
-    <option name="width" value="1920" />
-    <option name="height" value="1003" />
+    <option name="width" value="1440" />
+    <option name="height" value="816" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -230,19 +231,19 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1550625344369</updated>
-      <workItem from="1550625345924" duration="15112000" />
+      <workItem from="1550625345924" duration="20150000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15112000" />
+    <option name="totallyTimeSpent" value="20150000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1440" y="23" width="1920" height="1003" extended-state="1" />
+    <frame x="0" y="23" width="1440" height="816" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24973376" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19599427" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" />
@@ -253,7 +254,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.26673985" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.62897915" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.28314918" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -447,10 +448,21 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3420">
+          <caret line="60" selection-start-line="60" selection-end-line="60" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#3056#5532#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/../kaggleUnet/dataprepare.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1197">
-          <caret line="63" column="129" selection-start-line="63" selection-start-column="129" selection-end-line="63" selection-end-column="129" />
+        <state relative-caret-position="1140">
+          <caret line="60" column="49" selection-start-line="60" selection-start-column="49" selection-end-line="60" selection-end-column="49" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
@@ -459,8 +471,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../kaggleUnet/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="87">
-          <caret line="267" column="74" selection-start-line="267" selection-start-column="74" selection-end-line="267" selection-end-column="74" />
+        <state relative-caret-position="155">
+          <caret line="288" column="46" selection-start-line="288" selection-start-column="46" selection-end-line="288" selection-end-column="46" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
             <element signature="e#613#780#0" />
@@ -468,17 +480,6 @@
             <element signature="e#1176#1533#0" />
             <element signature="e#1567#2333#0" />
             <element signature="e#2364#3830#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2599">
-          <caret line="60" selection-start-line="60" selection-end-line="60" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-            <element signature="e#3056#5532#0" />
           </folding>
         </state>
       </provider>

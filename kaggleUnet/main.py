@@ -281,7 +281,7 @@ def get_accuracy(dl, model):
         #print(y.shape)
         #print(y.type())
         #print(np.argmax(output.data.numpy()).dtype)
-        correct_num += (np.argmax(output.data.numpy()) == y.data.numpy().astype("int64")).sum().item()
+        correct_num += (np.argmax(output.data.numpy(),axis=1) == y.data.numpy().astype("int64")).sum().item()
         total_num += y.shape[0]*y.shape[1]*y.shape[2]
 
     print("correct / total : "+str(correct_num / total_num))

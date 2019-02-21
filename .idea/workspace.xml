@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="26816f24-eeb3-4e40-bd19-73f21eac476c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resize_data.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/resize_data.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/visualize.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/visualize.ipynb" afterDir="false" />
-    </list>
+    <list default="true" id="26816f24-eeb3-4e40-bd19-73f21eac476c" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,7 +15,7 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-2599">
@@ -44,7 +40,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../kaggleUnet/main.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="87">
@@ -101,12 +97,13 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1455" />
-    <option name="y" value="36" />
-    <option name="width" value="1889" />
-    <option name="height" value="991" />
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="1440" />
+    <option name="y" value="23" />
+    <option name="width" value="1920" />
+    <option name="height" value="1003" />
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
@@ -233,15 +230,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1550625344369</updated>
-      <workItem from="1550625345924" duration="14828000" />
+      <workItem from="1550625345924" duration="15112000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="14828000" />
+    <option name="totallyTimeSpent" value="15112000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1440" y="23" width="1920" height="1003" extended-state="6" />
+    <frame x="1440" y="23" width="1920" height="1003" extended-state="1" />
     <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
@@ -450,17 +447,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2599">
-          <caret line="60" selection-start-line="60" selection-end-line="60" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-            <element signature="e#3056#5532#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../kaggleUnet/dataprepare.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1197">
@@ -482,6 +468,17 @@
             <element signature="e#1176#1533#0" />
             <element signature="e#1567#2333#0" />
             <element signature="e#2364#3830#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2599">
+          <caret line="60" selection-start-line="60" selection-end-line="60" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#3056#5532#0" />
           </folding>
         </state>
       </provider>

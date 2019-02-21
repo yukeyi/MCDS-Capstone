@@ -1,29 +1,25 @@
 import os
 import random
+import time
 import shutil
-
+import argparse
 from multiprocessing.dummy import Pool
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from PIL import Image
-
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
-
 from skimage.morphology import binary_opening, disk, label
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
 
 import torchvision.transforms as transforms
 from dataprepare import get_data
+
 
 #torch.backends.cudnn.enabled = False
 
@@ -251,8 +247,8 @@ class UNet(nn.Module):
         return x
 
 class MyCustomDataset(Dataset):
-    def __init__(self):
-        self.image, self.label = get_data()
+    def __init__(self, figuresize):
+        self.image, self.label = get_data(figuresize)
         print(self.image.shape)
         print(self.label.shape)
 
@@ -283,7 +279,9 @@ def get_accuracy(dl, model):
         output = model(X).cpu()
         #print(output.shape)
         #print(y.shape)
-        correct_num += (np.argmax(output.data.numpy()) == y).sum().item()
+        #print(y.type())
+        #print(np.argmax(output.data.numpy()).dtype)
+        correct_num += (np.argmax(output.data.numpy()) == y.data.numpy().astype("int64")).sum().item()
         total_num += y.shape[0]*y.shape[1]*y.shape[2]
 
     print("correct / total : "+str(correct_num / total_num))
@@ -291,28 +289,50 @@ def get_accuracy(dl, model):
     return correct_num/total_num
 
 
+parser = argparse.ArgumentParser(description='UNET Implementation')
+parser.add_argument('--batch-size', type=int, default=4, metavar='N',
+                    help='input batch size for training (default: 4)')
+parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
+                    help='input batch size for testing (default: 1000)')
+parser.add_argument('--epochs', type=int, default=20, metavar='N',
+                    help='number of epochs to train (default: 20)')
+parser.add_argument('--figuresize', type=int, default=240, metavar='N',
+                    help='size that we use for the model')
+parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
+                    help='learning rate (default: 0.001)')
+parser.add_argument('--seed', type=int, default=1, metavar='S',
+                    help='random seed (default: 1)')
+parser.add_argument('--log-interval', type=int, default=1, metavar='N',
+                    help='how many epoches between logging training status')
+parser.add_argument('--save-model', action='store_true', default=True,
+                    help='For Saving the current Model')
+parser.add_argument('--test-model', type=str, default='', metavar='N',
+                    help='If test-model has a name, do not do training, just testing on dev and train set')
+parser.add_argument('--load-model', type=str, default='', metavar='N',
+                    help='If load-model has a name, use pretrained model')
+args = parser.parse_args()
 
-train_loader = torch.utils.data.DataLoader(MyCustomDataset(), batch_size=4, shuffle=True)
+
+train_loader = torch.utils.data.DataLoader(MyCustomDataset(args.figuresize), batch_size=args.batch_size, shuffle=True)
 
 model = UNet(3, merge_mode='concat')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 model = model.to(device)
-
 model.train()
 
-
-epoches = 1000
 train_losses = []
 val_losses = []
 
-optim = torch.optim.Adam(model.parameters(),lr=0.001)
-for epoch in range(epoches):
+optim = torch.optim.Adam(model.parameters(),lr=args.lr)
+timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+os.mkdir(timeStr + "model")
+
+for epoch in range(args.epochs):
 
     for batch_idx, (data, label) in enumerate(train_loader):
 
         data, target = data.to(device), label.to(device)
-        #output = model(torch.rand((64,1,768,768)))
         output = model(data)
         loss = F.cross_entropy(output, target.long())
 
@@ -322,12 +342,18 @@ for epoch in range(epoches):
         #print(batch_idx)
 
 
-    if (epoch + 1) % 1 == 0:
+    if (epoch + 1) % args.log_interval == 0:
         print("Epoch : "+str(epoch))
         model.eval()
         train_loss = get_loss(train_loader, model)
         print(train_loss)
         train_acc = get_accuracy(train_loader, model)
+        if(train_acc < 0.01):
+            print("Bad initialization")
+            exit(0)
+        if(args.save_model):
+            torch.save(model.state_dict(), timeStr + "model/" + str(epoch) + ":" + str(train_acc) + ".pt")
+
         model.train()
 
 

@@ -46,7 +46,15 @@ def data_prepare(path, is_label_data):
 
     return img_stack_sm.tolist()
 
-def get_data():
+def get_data(figuresize):
+    global depth
+    global width
+    global height
+    
+    depth = figuresize
+    width = figuresize
+    height = figuresize
+    
     image = []
     label = []
     for file in os.listdir(base_image_path):
@@ -63,4 +71,4 @@ def get_data():
     return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.array(label)
 
 if __name__=="__main__":
-    image, label = get_data()
+    image, label = get_data(240)

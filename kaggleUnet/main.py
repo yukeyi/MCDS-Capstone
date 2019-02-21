@@ -264,8 +264,35 @@ class MyCustomDataset(Dataset):
         mask = self.label[idx]
         return (image, mask)
 
+def get_loss(dl, model):
+    loss = 0
+    for X, y in dl:
+        X, y = Variable(X).cuda(), Variable(y).cuda()
+        output = model(X)
+        loss += F.cross_entropy(output, y.long()).data[0]
+    loss = loss / len(dl)
+    return loss
 
-train_loader = torch.utils.data.DataLoader(MyCustomDataset(), batch_size=4, shuffle=False)
+def get_accuracy(dl, model):
+
+    total_num = 0
+    correct_num = 0
+
+    for X, y in dl:
+        X = Variable(X).cuda()
+        output = model(X).cpu()
+        #print(output.shape)
+        #print(y.shape)
+        correct_num += (np.argmax(output.data.numpy()) == y).sum().item()
+        total_num += y.shape[0]*y.shape[1]*y.shape[2]
+
+    print("correct / total : "+str(correct_num / total_num))
+
+    return correct_num/total_num
+
+
+
+train_loader = torch.utils.data.DataLoader(MyCustomDataset(), batch_size=4, shuffle=True)
 
 model = UNet(3, merge_mode='concat')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -274,11 +301,33 @@ model = model.to(device)
 
 model.train()
 
-for batch_idx, (data, label) in enumerate(train_loader):
 
-    data, target = data.to(device), label.to(device)
-    #output = model(torch.rand((64,1,768,768)))
-    output = model(data)
-    print(output.shape)
-    print(output[0][:,0,0])
-    break
+epoches = 1000
+train_losses = []
+val_losses = []
+
+optim = torch.optim.Adam(model.parameters(),lr=0.001)
+for epoch in range(epoches):
+
+    for batch_idx, (data, label) in enumerate(train_loader):
+
+        data, target = data.to(device), label.to(device)
+        #output = model(torch.rand((64,1,768,768)))
+        output = model(data)
+        loss = F.cross_entropy(output, target.long())
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+        #print(batch_idx)
+
+
+    if (epoch + 1) % 1 == 0:
+        print("Epoch : "+str(epoch))
+        model.eval()
+        train_loss = get_loss(train_loader, model)
+        print(train_loss)
+        train_acc = get_accuracy(train_loader, model)
+        model.train()
+
+

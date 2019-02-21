@@ -7,9 +7,9 @@ import os
 #change parameters here
 base_image_path = "../Training2/"
 base_label_path = "../Label2/"
-depth = 768
-height = 768
-width = 768
+depth = 240
+height = 240
+width = 240
 use_resize_2 = False
 
 def data_prepare(path, is_label_data):
@@ -59,9 +59,8 @@ def get_data():
 
         image += (data_prepare(image_path, False))
         label += (data_prepare(label_path, True))
-        break
     
-    return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.expand_dims(np.array(label), axis=1).astype(np.float32)
+    return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.array(label)
 
 if __name__=="__main__":
     image, label = get_data()

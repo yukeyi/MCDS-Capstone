@@ -247,10 +247,21 @@ class UNet(nn.Module):
         return x
 
 class MyCustomDataset(Dataset):
-    def __init__(self, figuresize):
-        self.image, self.label = get_data(figuresize)
-        print(self.image.shape)
-        print(self.label.shape)
+    def __init__(self, type):
+        if(type == 'Train'):
+            self.image = np.concatenate((total_image[0::10, :, :, :], total_image[1::10, :, :, :], total_image[2::10, :, :, :],
+                                         total_image[3::10, :, :, :], total_image[4::10, :, :, :], total_image[5::10, :, :, :],
+                                         total_image[6::10, :, :, :], total_image[7::10, :, :, :], total_image[8::10, :, :, :]))
+            self.label = np.concatenate((total_label[0::10, :, :], total_label[1::10, :, :], total_label[2::10, :, :],
+                                         total_label[3::10, :, :], total_label[4::10, :, :], total_label[5::10, :, :],
+                                         total_label[6::10, :, :], total_label[7::10, :, :], total_label[8::10, :, :]))
+            print(self.image.shape)
+            print(self.label.shape)
+        else:
+            self.image = total_image[9::10, :, :, :]
+            self.label = total_label[9::10, :, :]
+            print(self.image.shape)
+            print(self.label.shape)
 
     def __len__(self):
         return len(self.image)
@@ -284,8 +295,6 @@ def get_accuracy(dl, model):
         correct_num += (np.argmax(output.data.numpy(),axis=1) == y.data.numpy().astype("int64")).sum().item()
         total_num += y.shape[0]*y.shape[1]*y.shape[2]
 
-    print("correct / total : "+str(correct_num / total_num))
-
     return correct_num/total_num
 
 
@@ -312,8 +321,9 @@ parser.add_argument('--load-model', type=str, default='', metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
-
-train_loader = torch.utils.data.DataLoader(MyCustomDataset(args.figuresize), batch_size=args.batch_size, shuffle=True)
+total_image, total_label = get_data(args.figuresize)
+train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train'), batch_size=args.batch_size, shuffle=True)
+dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev'), batch_size=args.test_batch_size, shuffle=False)
 
 model = UNet(3, merge_mode='concat')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -321,9 +331,8 @@ print(device)
 model = model.to(device)
 model.train()
 
-train_losses = []
-val_losses = []
 
+best_accuracy = 0
 optim = torch.optim.Adam(model.parameters(),lr=args.lr)
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr + "model")
@@ -339,20 +348,25 @@ for epoch in range(args.epochs):
         optim.zero_grad()
         loss.backward()
         optim.step()
-        #print(batch_idx)
 
 
     if (epoch + 1) % args.log_interval == 0:
+
         print("Epoch : "+str(epoch))
         model.eval()
+
         train_loss = get_loss(train_loader, model)
         print(train_loss)
         train_acc = get_accuracy(train_loader, model)
+        dev_acc = get_accuracy(dev_loader, model)
+        print("Training accuracy : " + str(train_acc))
+        print("Dev accuracy : " + str(dev_acc))
         if(train_acc < 0.01):
             print("Bad initialization")
             exit(0)
-        if(args.save_model):
-            torch.save(model.state_dict(), timeStr + "model/" + str(epoch) + ":" + str(train_acc) + ".pt")
+        if(args.save_model and (dev_acc > best_accuracy)):
+            torch.save(model.state_dict(), timeStr + "model/" + str(epoch) + ":" + str(dev_acc) + ".pt")
+            best_accuracy = dev_acc
 
         model.train()
 

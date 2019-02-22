@@ -18,8 +18,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../kaggleUnet/dataprepare.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="266">
-              <caret line="14" column="4" selection-start-line="14" selection-start-column="4" selection-end-line="14" selection-end-column="4" />
+            <state relative-caret-position="667">
+              <caret line="74" column="105" selection-start-line="74" selection-start-column="105" selection-end-line="74" selection-end-column="105" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -30,8 +30,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../kaggleUnet/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="319">
-              <caret line="261" column="44" lean-forward="true" selection-start-line="261" selection-start-column="44" selection-end-line="261" selection-end-column="44" />
+            <state relative-caret-position="389">
+              <caret line="284" column="51" selection-start-line="284" selection-start-column="51" selection-end-line="284" selection-end-column="51" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#613#780#0" />
@@ -95,7 +95,7 @@
     <option name="x" value="1440" />
     <option name="y" value="23" />
     <option name="width" value="1920" />
-    <option name="height" value="1003" />
+    <option name="height" value="996" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -224,15 +224,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1550625344369</updated>
-      <workItem from="1550625345924" duration="25224000" />
+      <workItem from="1550625345924" duration="25803000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="25224000" />
+    <option name="totallyTimeSpent" value="25803000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1440" y="23" width="1920" height="1003" extended-state="0" />
+    <frame x="1440" y="23" width="1920" height="996" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
@@ -266,7 +266,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../kaggleUnet/main.py</url>
-          <line>258</line>
+          <line>259</line>
           <option name="timeStamp" value="27" />
         </line-breakpoint>
       </breakpoints>
@@ -441,18 +441,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../kaggleUnet/dataprepare.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="266">
-          <caret line="14" column="4" selection-start-line="14" selection-start-column="4" selection-end-line="14" selection-end-column="4" />
+        <state relative-caret-position="667">
+          <caret line="74" column="105" selection-start-line="74" selection-start-column="105" selection-end-line="74" selection-end-column="105" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/utils/data/dataloader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="293">
+          <caret line="767" column="8" selection-start-line="767" selection-start-column="8" selection-end-line="767" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/../kaggleUnet/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="319">
-          <caret line="261" column="44" lean-forward="true" selection-start-line="261" selection-start-column="44" selection-end-line="261" selection-end-column="44" />
+        <state relative-caret-position="389">
+          <caret line="284" column="51" selection-start-line="284" selection-start-column="51" selection-end-line="284" selection-end-column="51" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
             <element signature="e#613#780#0" />

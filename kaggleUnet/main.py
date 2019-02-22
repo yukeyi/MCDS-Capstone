@@ -246,6 +246,7 @@ class UNet(nn.Module):
         x = self.conv_final(x)
         return x
 
+'''
 class MyCustomDataset(Dataset):
     def __init__(self, type):
         if(type == 'Train'):
@@ -260,6 +261,28 @@ class MyCustomDataset(Dataset):
         else:
             self.image = total_image[9::10, :, :, :]
             self.label = total_label[9::10, :, :]
+            print(self.image.shape)
+            print(self.label.shape)
+
+    def __len__(self):
+        return len(self.image)
+
+    def __getitem__(self, idx):
+        image = self.image[idx]
+        mask = self.label[idx]
+        return (image, mask)
+'''
+
+class MyCustomDataset(Dataset):
+    def __init__(self, type):
+        if(type == 'Train'):
+            self.image = total_image[:-1*last_number,:,:,:]
+            self.label = total_label[:-1*last_number,:,:]
+            print(self.image.shape)
+            print(self.label.shape)
+        else:
+            self.image = total_image[-1*last_number:, :, :, :]
+            self.label = total_label[-1*last_number:, :, :]
             print(self.image.shape)
             print(self.label.shape)
 
@@ -321,7 +344,7 @@ parser.add_argument('--load-model', type=str, default='', metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
-total_image, total_label = get_data(args.figuresize)
+total_image, total_label, last_number = get_data(args.figuresize)
 train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train'), batch_size=args.batch_size, shuffle=True)
 dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev'), batch_size=args.test_batch_size, shuffle=False)
 

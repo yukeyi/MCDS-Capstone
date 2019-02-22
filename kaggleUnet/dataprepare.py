@@ -57,6 +57,8 @@ def get_data(figuresize):
     
     image = []
     label = []
+    num_of_last_heart = 0
+    
     for file in os.listdir(base_image_path):
         if(file[0] == '.'):
             continue
@@ -66,9 +68,11 @@ def get_data(figuresize):
         print(label_path)
 
         image += (data_prepare(image_path, False))
-        label += (data_prepare(label_path, True))
+        temp = data_prepare(label_path, True)
+        num_of_last_heart = len(temp)
+        label += temp
     
-    return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.array(label)
+    return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.array(label), num_of_last_heart
 
 if __name__=="__main__":
     image, label = get_data(240)

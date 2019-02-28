@@ -74,6 +74,18 @@ def get_data(figuresize):
     
     return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.array(label), heart_index
 
+def load_labels():
+    labelshape = [0]*10
+    for file in os.listdir(base_label_path):
+        if(file[0] == '.'):
+            continue
+        print(file)
+        label = sitk.ReadImage(base_label_path+file)
+        labelArray = sitk.GetArrayFromImage(label)
+        labelshape[int(file[-11])] = labelArray
+    return labelshape
+
 if __name__=="__main__":
+    load_labels()
     image, label, index = get_data(240)
     a = 1

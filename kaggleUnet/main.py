@@ -1,6 +1,7 @@
 import os
 import random
 import time
+import cv2
 import shutil
 import argparse
 from multiprocessing.dummy import Pool
@@ -19,6 +20,7 @@ from torch.utils.data import DataLoader, Dataset
 
 import torchvision.transforms as transforms
 from dataprepare import get_data
+from dataprepare import load_labels
 
 
 #torch.backends.cudnn.enabled = False
@@ -383,10 +385,27 @@ def get_dice_score(dl, model):
 
     #batch_num = 0
     score = 0
+    #img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_NEAREST)
+
     for X, y in dl:
         X = Variable(X).cuda()
         output = model(X).cpu()
-        score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
+        #print(output.shape)
+        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        #print(predicted.shape)
+
+        predicted_origin = [0]*predicted.shape[0]
+        for idx in range(len(predicted)):
+            img = predicted[idx, :, :]
+            img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[1]), interpolation=cv2.INTER_NEAREST)
+            predicted_origin[idx] = img_sm
+        predicted_origin = np.array(predicted_origin)
+
+        #print(predicted_origin.shape)
+        ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
+        #print(ground_truth.shape)
+        #score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
+        score = dice_score(ground_truth,predicted_origin, 3)
         #print(batch_num)
         #batch_num += 1
 
@@ -398,7 +417,22 @@ def get_jaccard_score(dl, model):
     for X, y in dl:
         X = Variable(X).cuda()
         output = model(X).cpu()
-        score = jaccard_index(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1))
+        #print(output.shape)
+        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        #print(predicted.shape)
+
+        predicted_origin = [0]*predicted.shape[0]
+        for idx in range(len(predicted)):
+            img = predicted[idx, :, :]
+            img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[1]), interpolation=cv2.INTER_NEAREST)
+            predicted_origin[idx] = img_sm
+        predicted_origin = np.array(predicted_origin)
+
+        #print(predicted_origin.shape)
+        ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
+        #print(ground_truth.shape)
+        #score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
+        score = jaccard_index(ground_truth,predicted_origin)
 
     return score
 
@@ -425,7 +459,9 @@ parser.add_argument('--load-model', type=str, default='', metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
+label_original = load_labels()
 total_image, total_label, heart_index = get_data(args.figuresize)
+
 dev_heart = 0
 total_number_of_2Dfigure = 1497
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))

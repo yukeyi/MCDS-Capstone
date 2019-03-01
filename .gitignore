@@ -1,0 +1,6 @@
+# ignore all python notebook checkpoint files
+.ipynb_checkpoints
+kaggleUnet/.ipynb_checkpoints/
+
+# ignore DS_store
+.DS_Store

@@ -1,4 +1,4 @@
-These are the required readings. Those already read are marked '*' in the front.
+These are the required readings. Those already read are marked '√' in the front.
 
 *********************************************************************************************************************************
 

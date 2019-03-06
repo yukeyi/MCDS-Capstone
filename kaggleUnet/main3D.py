@@ -372,6 +372,14 @@ def conv_block_3_3d(in_dim,out_dim,act_fn):
     )
     return model
 
+def conv_block_4_3d(in_dim,out_dim,act_fn):
+    model = nn.Sequential(
+        nn.Conv3d(in_dim,out_dim, kernel_size=1, stride=1, padding=0),
+        nn.BatchNorm3d(out_dim),
+        act_fn,
+    )
+    return model
+
 
 class UnetGenerator_3d(nn.Module):
 
@@ -400,7 +408,18 @@ class UnetGenerator_3d(nn.Module):
         self.trans_3 = conv_trans_block_3d(self.num_filter * 2, self.num_filter * 2, act_fn)
         self.up_3 = conv_block_3_3d(self.num_filter * 3, self.num_filter * 1, act_fn)
 
-        self.out = conv_block_3d(self.num_filter, out_dim, nn.LogSoftmax())
+        self.out = conv_block_4_3d(self.num_filter, out_dim, nn.LogSoftmax())
+        self.reset_params()
+
+    @staticmethod
+    def weight_init(m):
+        if (isinstance(m, nn.Conv3d) or isinstance(m, nn.ConvTranspose3d)):
+            nn.init.xavier_normal(m.weight)
+            nn.init.constant(m.bias, 0)
+
+    def reset_params(self):
+        for i, m in enumerate(self.modules()):
+            self.weight_init(m)
 
     def forward(self, x):
         down_1 = self.down_1(x)
@@ -475,8 +494,7 @@ class MyCustomDataset(Dataset):
 def get_loss(dl, model):
     loss = 0
     for X, y in dl:
-        if(device == 'cuda'):
-            X, y = Variable(X).cuda(), Variable(y).cuda()
+        X, y = Variable(X).cuda(), Variable(y).cuda()
         output = model(X)
         loss += nn.NLLLoss()(output, y.long()).item()
     loss = loss / len(dl)
@@ -541,8 +559,7 @@ def get_accuracy(dl, model):
     correct_num = 0
 
     for X, y in dl:
-        if(device == 'cuda'):
-            X = Variable(X).cuda()
+        X = Variable(X).cuda()
         output = model(X).cpu()
         #print(output.shape)
         #print(y.shape)
@@ -560,8 +577,7 @@ def get_dice_score(dl, model):
     #img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_NEAREST)
 
     for X, y in dl:
-        if(device == 'cuda'):
-            X = Variable(X).cuda()
+        X = Variable(X).cuda()
         output = model(X).cpu()
         #print(output.shape)
         predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)[0]
@@ -598,8 +614,7 @@ def get_jaccard_score(dl, model):
     #img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_NEAREST)
 
     for X, y in dl:
-        if(device == 'cuda'):
-            X = Variable(X).cuda()
+        X = Variable(X).cuda()
         output = model(X).cpu()
         #print(output.shape)
         predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)[0]
@@ -630,19 +645,21 @@ def get_jaccard_score(dl, model):
     return score
 
 parser = argparse.ArgumentParser(description='UNET Implementation')
-parser.add_argument('--batch-size', type=int, default=4, metavar='N',
-                    help='input batch size for training (default: 4)')
+parser.add_argument('--batch-size', type=int, default=1, metavar='N',
+                    help='input batch size for training (default: 1)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=20, metavar='N',
+parser.add_argument('--epochs', type=int, default=1000, metavar='N',
                     help='number of epochs to train (default: 20)')
-parser.add_argument('--figuresize', type=int, default=240, metavar='N',
+parser.add_argument('--figuresize', type=int, default=200, metavar='N',
                     help='size that we use for the model')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
-parser.add_argument('--log-interval', type=int, default=1, metavar='N',
+parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
+                    help='number of channel for first convolution (default: 8)')
+parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many epoches between logging training status')
 parser.add_argument('--save-model', action='store_true', default=True,
                     help='For Saving the current Model')
@@ -666,11 +683,11 @@ while(dev_heart < 10):
     train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train', dev_heart), batch_size=1, shuffle=True)
     dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev', dev_heart), batch_size=1, shuffle=False)
 
-    model = UnetGenerator_3d(1, 3, 8)
-    summary(model, input_size=(1, args.figuresize, args.figuresize, args.figuresize))
+    model = UnetGenerator_3d(1, 3, args.channel_base)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     model = model.to(device)
+    summary(model, input_size=(1, args.figuresize, args.figuresize, args.figuresize))
     model.train()
 
     best_dice = 0

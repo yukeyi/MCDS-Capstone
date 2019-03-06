@@ -444,6 +444,8 @@ parser.add_argument('--epochs', type=int, default=20, metavar='N',
                     help='number of epochs to train (default: 20)')
 parser.add_argument('--figuresize', type=int, default=240, metavar='N',
                     help='size that we use for the model')
+parser.add_argument('--channel-base', type=int, default=4, metavar='CB',
+                    help='number of channel for first convolution (default: 4)')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
@@ -475,11 +477,11 @@ while(dev_heart < 10):
     else:
         dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev', dev_heart), batch_size=heart_index[dev_heart][0]-heart_index[dev_heart-1][0], shuffle=False)
 
-    model = UNet(3, merge_mode='concat')
-    summary(model, input_size=(1, args.figuresize, args.figuresize))
+    model = UNet(3, start_filts=args.channel_base, merge_mode='concat')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     model = model.to(device)
+    summary(model, input_size=(1, args.figuresize, args.figuresize))
     model.train()
 
     best_dice = 0

@@ -10,7 +10,7 @@ base_label_path = "../Label2/"
 depth = 240
 height = 240
 width = 240
-use_resize_2 = True
+use_resize_2 = False
 
 
 def data_prepare(path, is_label_data):
@@ -68,10 +68,10 @@ def get_data(figuresize):
         print(image_path)
         print(label_path)
 
-        image.append(data_prepare(image_path, False))
-        label.append(data_prepare(label_path, True))
+        image += (data_prepare(image_path, False))
+        temp = data_prepare(label_path, True)
         heart_index.append((len(image), int(image_path[-5])))
-
+        label += temp
 
     return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.array(label), heart_index
 

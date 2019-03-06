@@ -1,6 +1,7 @@
 import os
 import random
 import time
+import cv2
 import shutil
 import argparse
 from multiprocessing.dummy import Pool
@@ -16,9 +17,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
+from torchsummary import summary
+
 
 import torchvision.transforms as transforms
 from dataprepare import get_data
+from dataprepare import load_labels
 
 
 #torch.backends.cudnn.enabled = False
@@ -263,10 +267,8 @@ class MyCustomDataset(Dataset):
             self.label = total_label[9::10, :, :]
             print(self.image.shape)
             print(self.label.shape)
-
     def __len__(self):
         return len(self.image)
-
     def __getitem__(self, idx):
         image = self.image[idx]
         mask = self.label[idx]
@@ -274,15 +276,20 @@ class MyCustomDataset(Dataset):
 '''
 
 class MyCustomDataset(Dataset):
-    def __init__(self, type):
+    def __init__(self, type, dev_heart):
+        if(dev_heart == 0):
+            from_num = 0
+        else:
+            from_num = heart_index[dev_heart-1][0]
+        to_num = heart_index[dev_heart][0]
         if(type == 'Train'):
-            self.image = total_image[:-1*last_number,:,:,:]
-            self.label = total_label[:-1*last_number,:,:]
+            self.image = np.concatenate((total_image[:from_num,:,:,:],total_image[to_num:,:,:,:]))
+            self.label = np.concatenate((total_label[:from_num,:,:],total_label[to_num:,:,:]))
             print(self.image.shape)
             print(self.label.shape)
         else:
-            self.image = total_image[-1*last_number:, :, :, :]
-            self.label = total_label[-1*last_number:, :, :]
+            self.image = total_image[from_num:to_num, :, :, :]
+            self.label = total_label[from_num:to_num, :, :]
             print(self.image.shape)
             print(self.label.shape)
 
@@ -303,6 +310,59 @@ def get_loss(dl, model):
     loss = loss / len(dl)
     return loss
 
+
+def one_hot(x, classes):
+    #print(x.shape)
+    #print(x.dtype)
+    length = len(x)
+    x_one_hot = np.zeros((classes, length))
+    x_one_hot[x, np.arange(length)] = 1
+    return x_one_hot
+
+
+'''
+label: ground truth label matrix or tensor
+target: predicted label matrix or tensor
+classes: number of classes in the label
+'''
+
+
+def dice_score(label, target, classes):
+    smooth = 1.
+
+    label_cols = one_hot(label.flatten(), classes)
+    target_cols = one_hot(target.flatten(), classes)
+
+    intersection = np.sum((label_cols * target_cols), axis=1)  # len = classes
+    normalization = np.sum((label_cols + target_cols), axis=1)  # len = classes
+
+    #print(intersection)
+    #print(normalization)
+
+    return ((2. * intersection + smooth).sum() /
+            (normalization + smooth).sum())
+
+
+'''
+label: predicted label matrix or tensor
+target: predicted label matrix or tensor
+classes: number of classes in the label
+*WARNING: label and target must be of the same dimension. 
+'''
+
+
+def jaccard_index(label, target):
+    label_flat = label.flatten()
+    target_flat = target.flatten()
+    length = len(label_flat)
+    assert (length == len(target_flat))
+
+    union = (label_flat != target_flat).astype(int).sum() + length
+    intersection = (label_flat == target_flat).astype(int).sum()
+
+    return intersection / union
+
+
 def get_accuracy(dl, model):
 
     total_num = 0
@@ -320,6 +380,60 @@ def get_accuracy(dl, model):
 
     return correct_num/total_num
 
+def get_dice_score(dl, model):
+
+    #batch_num = 0
+    score = 0
+    #img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_NEAREST)
+
+    for X, y in dl:
+        X = Variable(X).cuda()
+        output = model(X).cpu()
+        #print(output.shape)
+        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        #print(predicted.shape)
+
+        predicted_origin = [0]*predicted.shape[0]
+        for idx in range(len(predicted)):
+            img = predicted[idx, :, :]
+            img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[1]), interpolation=cv2.INTER_NEAREST)
+            predicted_origin[idx] = img_sm
+        predicted_origin = np.array(predicted_origin)
+
+        #print(predicted_origin.shape)
+        ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
+        #print(ground_truth.shape)
+        #score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
+        score = dice_score(ground_truth,predicted_origin, 3)
+        #print(batch_num)
+        #batch_num += 1
+
+    return score
+
+def get_jaccard_score(dl, model):
+
+    score = 0
+    for X, y in dl:
+        X = Variable(X).cuda()
+        output = model(X).cpu()
+        #print(output.shape)
+        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        #print(predicted.shape)
+
+        predicted_origin = [0]*predicted.shape[0]
+        for idx in range(len(predicted)):
+            img = predicted[idx, :, :]
+            img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[1]), interpolation=cv2.INTER_NEAREST)
+            predicted_origin[idx] = img_sm
+        predicted_origin = np.array(predicted_origin)
+
+        #print(predicted_origin.shape)
+        ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
+        #print(ground_truth.shape)
+        #score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
+        score = jaccard_index(ground_truth,predicted_origin)
+
+    return score
 
 parser = argparse.ArgumentParser(description='UNET Implementation')
 parser.add_argument('--batch-size', type=int, default=4, metavar='N',
@@ -344,53 +458,76 @@ parser.add_argument('--load-model', type=str, default='', metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
-total_image, total_label, last_number = get_data(args.figuresize)
-train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train'), batch_size=args.batch_size, shuffle=True)
-dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev'), batch_size=args.test_batch_size, shuffle=False)
+label_original = load_labels()
+total_image, total_label, heart_index = get_data(args.figuresize)
 
-model = UNet(3, merge_mode='concat')
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
-model = model.to(device)
-model.train()
-
-
-best_accuracy = 0
-optim = torch.optim.Adam(model.parameters(),lr=args.lr)
+dev_heart = 0
+total_number_of_2Dfigure = 1497
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr + "model")
 
-for epoch in range(args.epochs):
+while(dev_heart < 10):
 
-    for batch_idx, (data, label) in enumerate(train_loader):
+    print("We are using heart "+str(heart_index[dev_heart][1]))
+    train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train', dev_heart), batch_size=args.batch_size, shuffle=True)
+    if (dev_heart == 0):
+        dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev', dev_heart), batch_size=heart_index[0][0], shuffle=False)
+    else:
+        dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev', dev_heart), batch_size=heart_index[dev_heart][0]-heart_index[dev_heart-1][0], shuffle=False)
 
-        data, target = data.to(device), label.to(device)
-        output = model(data)
-        loss = F.cross_entropy(output, target.long())
+    model = UNet(3, merge_mode='concat')
+    summary(model, input_size=(1, args.figuresize, args.figuresize))
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
+    model = model.to(device)
+    model.train()
 
-        optim.zero_grad()
-        loss.backward()
-        optim.step()
+    best_dice = 0
+    best_jaccard = 0
+    optim = torch.optim.Adam(model.parameters(),lr=args.lr)
 
+    os.mkdir(timeStr + "model/dice"+str(heart_index[dev_heart][1]))
+    os.mkdir(timeStr + "model/jaccard"+str(heart_index[dev_heart][1]))
 
-    if (epoch + 1) % args.log_interval == 0:
+    for epoch in range(args.epochs):
 
-        print("Epoch : "+str(epoch))
-        model.eval()
+        for batch_idx, (data, label) in enumerate(train_loader):
 
-        train_loss = get_loss(train_loader, model)
-        print(train_loss)
-        train_acc = get_accuracy(train_loader, model)
-        dev_acc = get_accuracy(dev_loader, model)
-        print("Training accuracy : " + str(train_acc))
-        print("Dev accuracy : " + str(dev_acc))
-        if(train_acc < 0.01):
-            print("Bad initialization")
-            exit(0)
-        if(args.save_model and (dev_acc > best_accuracy)):
-            torch.save(model.state_dict(), timeStr + "model/" + str(epoch) + ":" + str(dev_acc) + ".pt")
-            best_accuracy = dev_acc
+            data, target = data.to(device), label.to(device)
+            output = model(data)
+            loss = F.cross_entropy(output, target.long())
 
-        model.train()
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
 
+        if (epoch + 1) % args.log_interval == 0:
 
+            print("Epoch : "+str(epoch))
+            model.eval()
+
+            train_loss = get_loss(train_loader, model)
+            print(train_loss)
+            train_acc = get_accuracy(train_loader, model)
+            dev_dice = get_dice_score(dev_loader, model)
+            dev_jaccard = get_jaccard_score(dev_loader, model)
+            dev_acc = get_accuracy(dev_loader, model)
+            print("Training accuracy : " + str(train_acc))
+            print("Dev dice score : " + str(dev_dice))
+            print("Dev jaccard score : " + str(dev_jaccard))
+            print("Dev accuracy : " + str(dev_acc))
+            if(train_acc < 0.01):
+                print("Bad initialization")
+                exit(0)
+            if(args.save_model and (dev_dice > best_dice)):
+                torch.save(model.state_dict(), timeStr + "model/dice"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_dice) + ".pt")
+                best_dice = dev_dice
+            if(args.save_model and (dev_jaccard > best_jaccard)):
+                torch.save(model.state_dict(), timeStr + "model/jaccard"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_jaccard) + ".pt")
+                best_jaccard = dev_jaccard
+
+            model.train()
+
+    print("Done")
+
+    dev_heart += 1

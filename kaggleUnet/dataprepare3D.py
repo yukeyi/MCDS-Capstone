@@ -59,6 +59,7 @@ def get_data(figuresize):
     image = []
     label = []
     heart_index = []
+    sum = 0
 
     for file in os.listdir(base_image_path):
         if (file[0] == '.'):
@@ -68,12 +69,12 @@ def get_data(figuresize):
         print(image_path)
         print(label_path)
 
-        image.append(data_prepare(image_path, False))
+        image.append(np.expand_dims(np.array(data_prepare(image_path, False)), axis=0).astype(np.float32))
         label.append(data_prepare(label_path, True))
-        heart_index.append((len(image), int(image_path[-5])))
+        sum += len(image[-1])
+        heart_index.append((sum, int(image_path[-5])))
 
-
-    return np.expand_dims(np.array(image), axis=1).astype(np.float32), np.array(label), heart_index
+    return np.array(image), np.array(label), heart_index
 
 
 def load_labels():

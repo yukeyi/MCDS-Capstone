@@ -18,7 +18,10 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
 from torchsummary import summary
-
+try:
+    from itertools import  ifilterfalse
+except ImportError: # py3k
+    from itertools import  filterfalse as ifilterfalse
 
 import torchvision.transforms as transforms
 from dataprepare3D import get_data
@@ -409,6 +412,7 @@ class UnetGenerator_3d(nn.Module):
         self.up_3 = conv_block_3_3d(self.num_filter * 3, self.num_filter * 1, act_fn)
 
         self.out = conv_block_4_3d(self.num_filter, out_dim, nn.LogSoftmax())
+        self.out_lovasz = conv_block_4_3d(self.num_filter, out_dim, nn.Softmax())
         self.reset_params()
 
     @staticmethod
@@ -440,8 +444,10 @@ class UnetGenerator_3d(nn.Module):
         trans_3 = self.trans_3(up_2)
         concat_3 = torch.cat([trans_3, down_1], dim=1)
         up_3 = self.up_3(concat_3)
-
-        out = self.out(up_3)
+        if(args.use_lovasz):
+            out = self.out_lovasz(up_3)
+        else:
+            out = self.out(up_3)
 
         return out
 
@@ -472,14 +478,20 @@ class MyCustomDataset(Dataset):
 
 class MyCustomDataset(Dataset):
     def __init__(self, type, dev_heart):
+        if(dev_heart == 0):
+            from_num = 0
+        else:
+            from_num = heart_index[dev_heart-1][0]
+        to_num = heart_index[dev_heart][0]
+
         if(type == 'Train'):
-            self.image = np.concatenate((total_image[0:dev_heart,:,:,:,:],total_image[dev_heart+1:,:,:,:,:]))
-            self.label = np.concatenate((total_label[0:dev_heart,:,:,:],total_label[dev_heart+1:,:,:,:]))
+            self.image = np.concatenate((total_image[:from_num,:,:,:,:],total_image[to_num:,:,:,:,:]))
+            self.label = np.concatenate((total_label[:from_num,:,:,:],total_label[to_num:,:,:,:]))
             print(self.image.shape)
             print(self.label.shape)
         else:
-            self.image = total_image[dev_heart:dev_heart+1, :, :, :, :]
-            self.label = total_label[dev_heart:dev_heart+1, :, :, :]
+            self.image = total_image[from_num:to_num, :, :, :, :]
+            self.label = total_label[from_num:to_num, :, :, :]
             print(self.image.shape)
             print(self.label.shape)
 
@@ -553,6 +565,86 @@ def jaccard_index(label, target):
     return intersection / union
 
 
+def lovasz_grad(gt_sorted):
+    """
+    Computes gradient of the Lovasz extension w.r.t sorted errors
+    See Alg. 1 in paper
+    """
+    p = len(gt_sorted)
+    gts = gt_sorted.sum()
+    intersection = gts - gt_sorted.float().cumsum(0)
+    union = gts + (1 - gt_sorted).float().cumsum(0)
+    jaccard = 1. - intersection / union
+    if p > 1: # cover 1-pixel case
+        jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
+    return jaccard
+
+def isnan(x):
+    return x != x
+
+def mean(l, ignore_nan=False, empty=0):
+    """
+    nanmean compatible with generators.
+    """
+    l = iter(l)
+    if ignore_nan:
+        l = ifilterfalse(isnan, l)
+    try:
+        n = 1
+        acc = next(l)
+    except StopIteration:
+        if empty == 'raise':
+            raise ValueError('Empty mean')
+        return empty
+    for n, v in enumerate(l, 2):
+        acc += v
+    if n == 1:
+        return acc
+    return acc / n
+
+
+
+def lovasz_softmax_flat(probas, labels, classes='present'):
+    """
+    Multi-class Lovasz-Softmax loss
+      probas: [P, C] Variable, class probabilities at each prediction (between 0 and 1)
+      labels: [P] Tensor, ground truth labels (between 0 and C - 1)
+      classes: 'all' for all, 'present' for classes present in labels, or a list of classes to average.
+    """
+    if probas.numel() == 0:
+        # only void pixels, the gradients should be 0
+        return probas * 0.
+    C = probas.size(1)
+    losses = []
+    class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
+    for c in class_to_sum:
+        fg = (labels == c).float() # foreground for class c
+        if (classes is 'present' and fg.sum() == 0):
+            continue
+        if C == 1:
+            if len(classes) > 1:
+                raise ValueError('Sigmoid output possible only with 1 class')
+            class_pred = probas[:, 0]
+        else:
+            class_pred = probas[:, c]
+        errors = (Variable(fg) - class_pred).abs()
+        errors_sorted, perm = torch.sort(errors, 0, descending=True)
+        perm = perm.data
+        fg_sorted = fg[perm]
+        losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
+    return mean(losses)
+
+
+def flatten_probas(probas, labels, ignore=None):
+    """
+    Flattens predictions in the batch
+    """
+    B, C, D, H, W = probas.size()
+    probas = probas.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)  # B * D * H * W, C = P, C
+    labels = labels.view(-1)
+    return probas, labels
+
+
 def get_accuracy(dl, model):
 
     total_num = 0
@@ -576,11 +668,13 @@ def get_dice_score(dl, model):
     score = 0
     #img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_NEAREST)
 
+
     for X, y in dl:
         X = Variable(X).cuda()
         output = model(X).cpu()
         #print(output.shape)
-        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)[0]
+        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
         #print(predicted.shape)
 
         predicted_origin = [0]*predicted.shape[0]
@@ -588,8 +682,8 @@ def get_dice_score(dl, model):
             img = predicted[idx, :, :]
             img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[1]), interpolation=cv2.INTER_NEAREST)
             predicted_origin[idx] = img_sm
-        predicted_origin = np.array(predicted_origin)
 
+        predicted_origin = np.array(predicted_origin)
         predicted_origin2 = np.zeros((label_original[heart_index[dev_heart][1]].shape[0], label_original[heart_index[dev_heart][1]].shape[1], label_original[heart_index[dev_heart][1]].shape[2]))
         for idx in range(label_original[heart_index[dev_heart][1]].shape[1]):
             img = predicted_origin[:, idx, :]
@@ -597,13 +691,8 @@ def get_dice_score(dl, model):
             img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[0]), interpolation=cv2.INTER_NEAREST)
             predicted_origin2[:, idx, :] = img_sm
 
-        #print(predicted_origin.shape)
         ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
-        #print(ground_truth.shape)
-        #score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
         score = dice_score(ground_truth,predicted_origin2.astype("int64"), 3)
-        #print(batch_num)
-        #batch_num += 1
 
     return score
 
@@ -613,11 +702,13 @@ def get_jaccard_score(dl, model):
     score = 0
     #img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_NEAREST)
 
+
     for X, y in dl:
         X = Variable(X).cuda()
         output = model(X).cpu()
         #print(output.shape)
-        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)[0]
+        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
         #print(predicted.shape)
 
         predicted_origin = [0]*predicted.shape[0]
@@ -625,8 +716,8 @@ def get_jaccard_score(dl, model):
             img = predicted[idx, :, :]
             img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[1]), interpolation=cv2.INTER_NEAREST)
             predicted_origin[idx] = img_sm
-        predicted_origin = np.array(predicted_origin)
 
+        predicted_origin = np.array(predicted_origin)
         predicted_origin2 = np.zeros((label_original[heart_index[dev_heart][1]].shape[0], label_original[heart_index[dev_heart][1]].shape[1], label_original[heart_index[dev_heart][1]].shape[2]))
         for idx in range(label_original[heart_index[dev_heart][1]].shape[1]):
             img = predicted_origin[:, idx, :]
@@ -634,43 +725,44 @@ def get_jaccard_score(dl, model):
             img_sm = cv2.resize(img, (label_original[heart_index[dev_heart][1]].shape[2], label_original[heart_index[dev_heart][1]].shape[0]), interpolation=cv2.INTER_NEAREST)
             predicted_origin2[:, idx, :] = img_sm
 
-        #print(predicted_origin.shape)
         ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
-        #print(ground_truth.shape)
-        #score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
         score = jaccard_index(ground_truth,predicted_origin2.astype("int64"))
-        #print(batch_num)
-        #batch_num += 1
 
     return score
 
 parser = argparse.ArgumentParser(description='UNET Implementation')
-parser.add_argument('--batch-size', type=int, default=1, metavar='N',
-                    help='input batch size for training (default: 1)')
+parser.add_argument('--batch-size', type=int, default=4, metavar='N',
+                    help='input batch size for training (default: 4)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=1000, metavar='N',
+parser.add_argument('--slices-depth', type=int, default=8, metavar='N',
+                    help='depth of each slides (default: 8)')
+parser.add_argument('--epochs', type=int, default=200, metavar='N',
                     help='number of epochs to train (default: 20)')
-parser.add_argument('--figuresize', type=int, default=200, metavar='N',
-                    help='size that we use for the model')
+parser.add_argument('--figuresize1', type=int, default=200, metavar='N',
+                    help='size1 that we use for the model')
+parser.add_argument('--figuresize2', type=int, default=160, metavar='N',
+                    help='size2 that we use for the model')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
                     help='number of channel for first convolution (default: 8)')
-parser.add_argument('--log-interval', type=int, default=10, metavar='N',
+parser.add_argument('--log-interval', type=int, default=1, metavar='N',
                     help='how many epoches between logging training status')
 parser.add_argument('--save-model', action='store_true', default=True,
                     help='For Saving the current Model')
+parser.add_argument('--use-lovasz', action='store_true', default=True,
+                    help='Whether use lovasz cross-entropy')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default='', metavar='N',
+parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
 label_original = load_labels()
-total_image, total_label, heart_index = get_data(args.figuresize)
+total_image, total_label, heart_index = get_data(args.slices_depth,args.figuresize1,args.figuresize2)
 
 dev_heart = 0
 
@@ -680,14 +772,23 @@ os.mkdir(timeStr + "model")
 while(dev_heart < 10):
 
     print("We are using heart "+str(heart_index[dev_heart][1]))
-    train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train', dev_heart), batch_size=1, shuffle=True)
-    dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev', dev_heart), batch_size=1, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train', dev_heart), batch_size=args.batch_size, shuffle=True)
+    if (dev_heart == 0):
+        dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev', dev_heart), batch_size=heart_index[0][0], shuffle=False)
+    else:
+        dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev', dev_heart), batch_size=heart_index[dev_heart][0]-heart_index[dev_heart-1][0], shuffle=False)
 
     model = UnetGenerator_3d(1, 3, args.channel_base)
+    if(args.load_model is not None):
+        exist_dict = torch.load(args.load_model)
+        total_dict = model.state_dict()
+        for k, v in exist_dict.items():
+            total_dict[k] = v
+        model.load_state_dict(total_dict)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     model = model.to(device)
-    summary(model, input_size=(1, args.figuresize, args.figuresize, args.figuresize))
+    summary(model, input_size=(1, args.slices_depth, args.figuresize1, args.figuresize2))
     model.train()
 
     best_dice = 0
@@ -702,8 +803,13 @@ while(dev_heart < 10):
         for batch_idx, (data, label) in enumerate(train_loader):
 
             data, target = data.to(device), label.to(device)
-            logsoftmax_output_z = model(data)
-            loss = nn.NLLLoss()(logsoftmax_output_z, target.long())
+            if (args.use_lovasz):
+                softmax_output_z = model(data)
+                vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
+                loss = lovasz_softmax_flat(vprobas, vlabels)
+            else:
+                logsoftmax_output_z = model(data)
+                loss = nn.NLLLoss()(logsoftmax_output_z, target.long())
 
             optim.zero_grad()
             loss.backward()

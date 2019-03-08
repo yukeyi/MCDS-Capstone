@@ -469,7 +469,6 @@ timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr + "model")
 
 while(dev_heart < 10):
-
     print("We are using heart "+str(heart_index[dev_heart][1]))
     train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train', dev_heart), batch_size=args.batch_size, shuffle=True)
     if (dev_heart == 0):

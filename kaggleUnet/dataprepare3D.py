@@ -10,6 +10,7 @@ base_label_path = "../Label2/"
 depth = 240
 height = 240
 width = 240
+slices = 8
 use_resize_2 = True
 
 
@@ -20,13 +21,14 @@ def data_prepare(path, is_label_data):
 
     # resize the image
     img_stack_sm = np.zeros((len(heartArray), height, depth))
+    width = ((heartArray.shape[0]+slices-1)//slices)*slices
 
     for idx in range(len(heartArray)):
         img = heartArray[idx, :, :]
         if is_label_data:
-            img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_NEAREST)
+            img_sm = cv2.resize(img, (depth, height), interpolation=cv2.INTER_NEAREST)
         else:
-            img_sm = cv2.resize(img, (height, depth), interpolation=cv2.INTER_CUBIC)
+            img_sm = cv2.resize(img, (depth, height), interpolation=cv2.INTER_CUBIC)
         img_stack_sm[idx, :, :] = img_sm
 
     if (use_resize_2):
@@ -35,31 +37,31 @@ def data_prepare(path, is_label_data):
         for idx in range(height):
             img = img_stack_sm[:, idx, :]
             if is_label_data:
-                img_sm = cv2.resize(img, (width, depth), interpolation=cv2.INTER_NEAREST)
+                img_sm = cv2.resize(img, (depth, width), interpolation=cv2.INTER_NEAREST)
 
             else:
-                img_sm = cv2.resize(img, (width, depth), interpolation=cv2.INTER_CUBIC)
+                img_sm = cv2.resize(img, (depth, width), interpolation=cv2.INTER_CUBIC)
             img_stack_sm2[:, idx, :] = img_sm
         img_stack_sm = img_stack_sm2
 
     # print(img_stack_sm.shape)
-
+    img_stack_sm.resize((img_stack_sm.shape[0]//slices,slices,img_stack_sm.shape[1],img_stack_sm.shape[2]))
     return img_stack_sm.tolist()
 
 
-def get_data(figuresize):
+def get_data(mini_dim, dim1, dim2):
     global depth
     global width
     global height
+    global slices
 
-    depth = figuresize
-    width = figuresize
-    height = figuresize
+    slices = mini_dim
+    height = dim1
+    depth = dim2
 
     image = []
     label = []
     heart_index = []
-    sum = 0
 
     for file in os.listdir(base_image_path):
         if (file[0] == '.'):
@@ -69,12 +71,11 @@ def get_data(figuresize):
         print(image_path)
         print(label_path)
 
-        image.append(np.expand_dims(np.array(data_prepare(image_path, False)), axis=0).astype(np.float32))
-        label.append(data_prepare(label_path, True))
-        sum += len(image[-1])
-        heart_index.append((sum, int(image_path[-5])))
+        image += np.expand_dims(np.array(data_prepare(image_path, False)), axis=1).tolist()
+        label += data_prepare(label_path, True)
+        heart_index.append((len(label), int(image_path[-5])))
 
-    return np.array(image), np.array(label), heart_index
+    return np.array(image).astype(np.float32), np.array(label), heart_index
 
 
 def load_labels():
@@ -90,6 +91,20 @@ def load_labels():
 
 
 if __name__ == "__main__":
-    load_labels()
-    image, label, index = get_data(240)
+    label_original = load_labels()
+    dim2 = 0
+    dim3 = 0
+    maxdim2 = 0
+    maxdim3 = 0
+    for i in range(10):
+        dim2 += len(label_original[i][0])
+        dim3 += len(label_original[i][0][0])
+        if len(label_original[i][0]) > maxdim2:
+            maxdim2 = len(label_original[i][0])
+        if len(label_original[i][0][0]) > maxdim3:
+            maxdim3 = len(label_original[i][0][0])
+    dim2 /= 10
+    dim3 /= 10
+
+    image, label, index = get_data(8,200,160)
     a = 1

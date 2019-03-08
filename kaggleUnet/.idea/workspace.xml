@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="23ebf115-d17b-4204-bf6b-709421693b50" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dataprepare3D.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataprepare3D.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/U_Net.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/U_Net.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main3D.py" beforeDir="false" afterPath="$PROJECT_DIR$/main3D.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -15,18 +13,20 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/kaggleUnet$dataprepare3D.coverage" NAME="dataprepare3D Coverage Results" MODIFIED="1552001645480" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/kaggleUnet$main.coverage" NAME="main Coverage Results" MODIFIED="1551817686255" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/kaggleUnet$visualize__1_.coverage" NAME="visualize (1) Coverage Results" MODIFIED="1552066896885" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../.." />
+    <SUITE FILE_PATH="coverage/kaggleUnet$main.coverage" NAME="main Coverage Results" MODIFIED="1552015696565" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/kaggleUnet$dataprepare.coverage" NAME="dataprepare Coverage Results" MODIFIED="1551806445242" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/kaggleUnet$visualize.coverage" NAME="visualize Coverage Results" MODIFIED="1551916305052" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../handout/src" />
-    <SUITE FILE_PATH="coverage/kaggleUnet$main3D.coverage" NAME="main3D Coverage Results" MODIFIED="1552009244915" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/kaggleUnet$main3D.coverage" NAME="main3D Coverage Results" MODIFIED="1552016992490" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/kaggleUnet$visualize_2.coverage" NAME="visualize 2 Coverage Results" MODIFIED="1552068600091" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../.." />
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main3D.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="171">
-              <caret line="406" column="2" lean-forward="true" selection-start-line="406" selection-start-column="2" selection-end-line="406" selection-end-column="2" />
+            <state relative-caret-position="240">
+              <caret line="846" column="18" selection-start-line="846" selection-start-column="18" selection-end-line="846" selection-end-column="18" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <element signature="e#660#5456#1" />
@@ -37,10 +37,25 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/cuda/__init__.py">
+        <entry file="file://$PROJECT_DIR$/../../../visualize.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="174">
-              <caret line="74" selection-start-line="74" selection-end-line="74" />
+            <state relative-caret-position="253">
+              <caret line="24" column="28" selection-start-line="24" selection-start-column="28" selection-end-line="24" selection-end-column="28" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../../../visualize 2.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="228">
+              <caret line="12" column="1" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -48,8 +63,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="216">
-              <caret line="498" column="31" selection-start-line="498" selection-start-column="31" selection-end-line="498" selection-end-column="31" />
+            <state relative-caret-position="-9184">
+              <caret line="25" selection-start-line="25" selection-end-line="25" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -60,7 +75,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/nn/functional.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="247">
+            <state relative-caret-position="898">
               <caret line="1927" column="44" selection-start-line="1927" selection-start-column="33" selection-end-line="1927" selection-end-column="44" />
             </state>
           </provider>
@@ -69,8 +84,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dataprepare3D.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="387">
-              <caret line="108" column="34" selection-start-line="108" selection-start-column="26" selection-end-line="108" selection-end-column="34" />
+            <state relative-caret-position="-31">
+              <caret line="82" column="44" selection-start-line="82" selection-start-column="44" selection-end-line="82" selection-end-column="44" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -82,9 +97,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>relu</find>
-      <find>data</find>
-      <find>total_number_of_2Dfigure</find>
       <find>64</find>
       <find>label_original</find>
       <find>img_stack_sm</find>
@@ -103,15 +115,18 @@
       <find>load_labels</find>
       <find>argmax</find>
       <find>get_data</find>
-      <find>data_prepare</find>
       <find>total_image</find>
       <find>slices</find>
       <find>get_dice_score</find>
       <find>NLL</find>
       <find>xloss</find>
-      <find>MyCustomDataset</find>
       <find>mean</find>
       <find>lovasz_grad</find>
+      <find>get_accuracy</find>
+      <find>astype</find>
+      <find>data_prepare</find>
+      <find>MyCustomDataset</find>
+      <find>true</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -129,14 +144,15 @@
         <option value="$PROJECT_DIR$/dataprepare3D.py" />
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/main3D.py" />
+        <option value="$PROJECT_DIR$/../../../visualize.py" />
+        <option value="$PROJECT_DIR$/../../../visualize 2.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1440" />
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
-    <option name="width" value="1920" />
-    <option name="height" value="1057" />
+    <option name="width" value="1440" />
+    <option name="height" value="814" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -176,7 +192,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.main3D">
+  <component name="RunManager" selected="Python.visualize 2">
     <configuration name="dataprepare" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="kaggleUnet" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -265,7 +281,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="visualize" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="visualize 2" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="kaggleUnet" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -273,12 +289,34 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../../handout/src" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../.." />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../../../handout/src/visualize.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../../../visualize 2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="visualize (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="kaggleUnet" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../.." />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../../../visualize.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -291,15 +329,17 @@
       <item itemvalue="Python.dataprepare" />
       <item itemvalue="Python.main" />
       <item itemvalue="Python.main3D" />
-      <item itemvalue="Python.visualize" />
       <item itemvalue="Python.dataprepare3D" />
+      <item itemvalue="Python.visualize (1)" />
+      <item itemvalue="Python.visualize 2" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.visualize 2" />
+        <item itemvalue="Python.visualize (1)" />
         <item itemvalue="Python.main3D" />
-        <item itemvalue="Python.dataprepare3D" />
-        <item itemvalue="Python.visualize" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.dataprepare3D" />
       </list>
     </recent_temporary>
   </component>
@@ -313,19 +353,18 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1551805868606</updated>
-      <workItem from="1551805869913" duration="53786000" />
+      <workItem from="1551805869913" duration="63629000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="53786000" />
+    <option name="totallyTimeSpent" value="63629000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1440" y="23" width="1920" height="1057" extended-state="6" />
-    <editor active="true" />
+    <frame x="0" y="23" width="1440" height="814" extended-state="0" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.09158679" />
+      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.123032905" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Database Changes" order="0" />
       <window_info anchor="bottom" id="Terminal" order="1" />
@@ -335,14 +374,14 @@
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
       <window_info anchor="bottom" id="Find" order="7" />
-      <window_info anchor="bottom" id="Run" order="8" weight="0.30530974" />
-      <window_info active="true" anchor="bottom" id="Debug" order="9" visible="true" weight="0.36891192" />
+      <window_info anchor="bottom" id="Run" order="8" visible="true" weight="0.18144044" />
+      <window_info anchor="bottom" id="Debug" order="9" weight="0.27564767" />
       <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="11" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="12" />
       <window_info anchor="right" id="Database" order="0" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="1" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="SciView" order="2" weight="0.32960597" />
+      <window_info active="true" anchor="right" id="SciView" order="2" visible="true" weight="0.34477827" />
       <window_info anchor="right" id="Ant Build" order="3" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="4" weight="0.25" />
     </layout>
@@ -418,27 +457,27 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main3D.py</url>
-          <line>686</line>
+          <line>685</line>
           <option name="timeStamp" value="64" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main3D.py</url>
-          <line>693</line>
+          <line>692</line>
           <option name="timeStamp" value="65" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main3D.py</url>
-          <line>676</line>
+          <line>675</line>
           <option name="timeStamp" value="67" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main3D.py</url>
-          <line>679</line>
+          <line>678</line>
           <option name="timeStamp" value="68" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main3D.py</url>
-          <line>696</line>
+          <line>694</line>
           <option name="timeStamp" value="69" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -456,6 +495,11 @@
           <line>813</line>
           <option name="timeStamp" value="72" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main3D.py</url>
+          <line>800</line>
+          <option name="timeStamp" value="74" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
@@ -471,11 +515,28 @@
         <watch expression="target.shape" language="Python" />
         <watch expression="vprobas.shape" language="Python" />
         <watch expression="vlabels.shape" language="Python" />
+        <watch expression="ground_truth.sum()" language="Python" />
+        <watch expression="predicted_origin2.sum()" language="Python" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>predicted_origin2.sum()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>ground_truth.sum()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>ground_truth.sum</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>softmax_output_z[0,:,0,0,0]</expression-string>
         <language-id>Python</language-id>
@@ -508,21 +569,6 @@
       </expression>
       <expression>
         <expression-string>predicted.shape</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>output.shape</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>X.shape</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>predicted_origin.shape</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -601,23 +647,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dataprepare3D.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="387">
-          <caret line="108" column="34" selection-start-line="108" selection-start-column="26" selection-end-line="108" selection-end-column="34" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/cuda/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="174">
-          <caret line="74" selection-start-line="74" selection-end-line="74" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/nn/modules/activation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="242">
@@ -625,31 +654,68 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/cuda/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2644">
+          <caret line="74" selection-start-line="74" selection-end-line="74" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/nn/functional.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="898">
+          <caret line="1927" column="44" selection-start-line="1927" selection-start-column="33" selection-end-line="1927" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataprepare3D.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-31">
+          <caret line="82" column="44" selection-start-line="82" selection-start-column="44" selection-end-line="82" selection-end-column="44" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="216">
-          <caret line="498" column="31" selection-start-line="498" selection-start-column="31" selection-end-line="498" selection-end-column="31" />
+        <state relative-caret-position="-9184">
+          <caret line="25" selection-start-line="25" selection-end-line="25" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/nn/functional.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="247">
-          <caret line="1927" column="44" selection-start-line="1927" selection-start-column="33" selection-end-line="1927" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main3D.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="406" column="2" lean-forward="true" selection-start-line="406" selection-start-column="2" selection-end-line="406" selection-end-column="2" />
+        <state relative-caret-position="240">
+          <caret line="846" column="18" selection-start-line="846" selection-start-column="18" selection-end-line="846" selection-end-column="18" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
             <element signature="e#660#5456#1" />
             <element signature="e#8793#10073#1" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../visualize.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="253">
+          <caret line="24" column="28" selection-start-line="24" selection-start-column="28" selection-end-line="24" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../visualize 2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="228">
+          <caret line="12" column="1" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>

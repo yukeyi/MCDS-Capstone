@@ -659,7 +659,6 @@ def get_accuracy(dl, model):
         #print(np.argmax(output.data.numpy()).dtype)
         correct_num += (np.argmax(output.data.numpy(),axis=1) == y.data.numpy().astype("int64")).sum().item()
         total_num += y.shape[0]*y.shape[1]*y.shape[2]*y.shape[3]
-
     return correct_num/total_num
 
 def get_dice_score(dl, model):
@@ -673,7 +672,7 @@ def get_dice_score(dl, model):
         X = Variable(X).cuda()
         output = model(X).cpu()
         #print(output.shape)
-        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        predicted = np.argmax(output.data.numpy(),axis=1)
         predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
         #print(predicted.shape)
 
@@ -693,7 +692,6 @@ def get_dice_score(dl, model):
 
         ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
         score = dice_score(ground_truth,predicted_origin2.astype("int64"), 3)
-
     return score
 
 def get_jaccard_score(dl, model):
@@ -707,7 +705,7 @@ def get_jaccard_score(dl, model):
         X = Variable(X).cuda()
         output = model(X).cpu()
         #print(output.shape)
-        predicted = np.argmax(output.data.numpy().astype("int64"),axis=1)
+        predicted = np.argmax(output.data.numpy(),axis=1)
         predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
         #print(predicted.shape)
 
@@ -737,7 +735,7 @@ parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
 parser.add_argument('--slices-depth', type=int, default=8, metavar='N',
                     help='depth of each slides (default: 8)')
-parser.add_argument('--epochs', type=int, default=200, metavar='N',
+parser.add_argument('--epochs', type=int, default=80, metavar='N',
                     help='number of epochs to train (default: 20)')
 parser.add_argument('--figuresize1', type=int, default=200, metavar='N',
                     help='size1 that we use for the model')
@@ -753,7 +751,7 @@ parser.add_argument('--log-interval', type=int, default=1, metavar='N',
                     help='how many epoches between logging training status')
 parser.add_argument('--save-model', action='store_true', default=True,
                     help='For Saving the current Model')
-parser.add_argument('--use-lovasz', action='store_true', default=True,
+parser.add_argument('--use-lovasz', action='store_true', default=False,
                     help='Whether use lovasz cross-entropy')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
@@ -764,7 +762,7 @@ args = parser.parse_args()
 label_original = load_labels()
 total_image, total_label, heart_index = get_data(args.slices_depth,args.figuresize1,args.figuresize2)
 
-dev_heart = 0
+dev_heart = 7
 
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr + "model")
@@ -798,6 +796,8 @@ while(dev_heart < 10):
     os.mkdir(timeStr + "model/dice"+str(heart_index[dev_heart][1]))
     os.mkdir(timeStr + "model/jaccard"+str(heart_index[dev_heart][1]))
 
+    #dev_acc = get_accuracy(dev_loader, model)
+    #dev_dice = get_dice_score(dev_loader, model)
     for epoch in range(args.epochs):
 
         for batch_idx, (data, label) in enumerate(train_loader):
@@ -830,9 +830,9 @@ while(dev_heart < 10):
             print("Dev jaccard score : " + str(dev_jaccard))
             dev_acc = get_accuracy(dev_loader, model)
             print("Dev accuracy : " + str(dev_acc))
-            if(train_acc < 0.01):
-                print("Bad initialization")
-                exit(0)
+            #if(train_acc < 0.01):
+            #    print("Bad initialization")
+            #    exit(0)
             if(args.save_model and (dev_dice > best_dice)):
                 torch.save(model.state_dict(), timeStr + "model/dice"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_dice) + ".pt")
                 best_dice = dev_dice

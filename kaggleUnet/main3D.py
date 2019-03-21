@@ -4,14 +4,7 @@ import time
 import cv2
 import shutil
 import argparse
-from multiprocessing.dummy import Pool
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from PIL import Image
-from sklearn.model_selection import train_test_split
-from sklearn.externals import joblib
-from skimage.morphology import binary_opening, disk, label
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -505,14 +498,65 @@ class MyCustomDataset(Dataset):
 
 def get_loss(dl, model):
     loss = 0
-    for X, y in dl:
-        X, y = Variable(X).cuda(), Variable(y).cuda()
-        output = model(X)
-        loss += nn.NLLLoss()(output, y.long()).item()
-    loss = loss / len(dl)
-    return loss
+    if (args.use_lovasz):
+        for X, y in dl:
+            softmax_output_z = model(data)
+            vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
+            loss += lovasz_softmax_flat(vprobas, vlabels).item()
+        loss = loss / len(dl)
+        return loss
+    else:
+        for X, y in dl:
+            X, y = Variable(X).cuda(), Variable(y).cuda()
+            output = model(X)
+            loss += nn.NLLLoss()(output, y.long()).item()
+        loss = loss / len(dl)
+        return loss
 
 
+'''
+main_class: the class that you want to predict as one, must be a single value
+'''
+
+
+def binary_vector(x, main_class):
+    length = len(x)
+    binary = np.zeros(length)
+    binary = main_class
+
+    return (binary == x).astype(int)
+
+
+'''
+classes: a list of labels that we want for binary comparison
+e.g. [1, 2] will return a list of two scores. The first index
+is the score of regarding 1 as 1 and 2 as 0. The second is the
+score of regarding 2 as 1 and 1 as 0. 
+
+*WARNING: label and target must be of the same dimension. 
+'''
+
+
+def binary_dice_score(label, target, classes):
+    scores = []
+    smooth = 1
+
+    for cls in classes:
+        label_binary = binary_vector(label.flatten(), cls)
+        #print("label_binary")
+        #print(label_binary)
+        target_binary = binary_vector(target.flatten(), cls)
+        #print("target_binary")
+        #print(target_binary)
+        intersection = np.sum(label_binary * target_binary)
+        normalization = np.sum(label_binary + target_binary)
+        score = ((2. * intersection + smooth).sum() /
+                 (normalization + smooth).sum())
+        scores.append(score)
+        #print("--------------------")
+    return scores
+
+''' # old version 
 def one_hot(x, classes):
     #print(x.shape)
     #print(x.dtype)
@@ -520,7 +564,7 @@ def one_hot(x, classes):
     x_one_hot = np.zeros((classes, length))
     x_one_hot[x, np.arange(length)] = 1
     return x_one_hot
-
+'''
 
 '''
 label: ground truth label matrix or tensor
@@ -528,7 +572,7 @@ target: predicted label matrix or tensor
 classes: number of classes in the label
 '''
 
-
+''' # old version
 def dice_score(label, target, classes):
     smooth = 1.
 
@@ -543,7 +587,7 @@ def dice_score(label, target, classes):
 
     return ((2. * intersection + smooth).sum() /
             (normalization + smooth).sum())
-
+'''
 
 '''
 label: predicted label matrix or tensor
@@ -552,7 +596,7 @@ classes: number of classes in the label
 *WARNING: label and target must be of the same dimension. 
 '''
 
-
+''' # old version 
 def jaccard_index(label, target):
     label_flat = label.flatten()
     target_flat = target.flatten()
@@ -563,7 +607,7 @@ def jaccard_index(label, target):
     intersection = (label_flat == target_flat).astype(int).sum()
 
     return intersection / union
-
+'''
 
 def lovasz_grad(gt_sorted):
     """
@@ -691,8 +735,24 @@ def get_dice_score(dl, model):
             predicted_origin2[:, idx, :] = img_sm
 
         ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
-        score = dice_score(ground_truth,predicted_origin2.astype("int64"), 3)
+        score = binary_dice_score(ground_truth,predicted_origin2.astype("int64"), [1,2])
     return score
+
+
+def binary_jaccard_index(label, target, classes):
+    scores = []
+    assert (len(label.flatten()) == len(target.flatten()))
+    for cls in classes:
+        label_binary = binary_vector(label.flatten(), cls)
+        target_binary = binary_vector(target.flatten(), cls)
+        length = len(label_binary)
+
+        union = (label_binary != target_binary).astype(int).sum() + length
+        intersection = (label_binary == target_binary).astype(int).sum()
+
+        scores.append(intersection / union)
+    return scores
+
 
 def get_jaccard_score(dl, model):
 
@@ -789,7 +849,7 @@ while(dev_heart < 10):
     summary(model, input_size=(1, args.slices_depth, args.figuresize1, args.figuresize2))
     model.train()
 
-    best_dice = 0
+    best_dice = [0.0,0.0]
     best_jaccard = 0
     optim = torch.optim.Adam(model.parameters(),lr=args.lr)
 
@@ -826,19 +886,25 @@ while(dev_heart < 10):
             print("Training accuracy : " + str(train_acc))
             dev_dice = get_dice_score(dev_loader, model)
             print("Dev dice score : " + str(dev_dice))
-            dev_jaccard = get_jaccard_score(dev_loader, model)
-            print("Dev jaccard score : " + str(dev_jaccard))
+            #dev_jaccard = get_jaccard_score(dev_loader, model)
+            #print("Dev jaccard score : " + str(dev_jaccard))
             dev_acc = get_accuracy(dev_loader, model)
             print("Dev accuracy : " + str(dev_acc))
             #if(train_acc < 0.01):
             #    print("Bad initialization")
             #    exit(0)
-            if(args.save_model and (dev_dice > best_dice)):
-                torch.save(model.state_dict(), timeStr + "model/dice"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_dice) + ".pt")
-                best_dice = dev_dice
-            if(args.save_model and (dev_jaccard > best_jaccard)):
-                torch.save(model.state_dict(), timeStr + "model/jaccard"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_jaccard) + ".pt")
-                best_jaccard = dev_jaccard
+            if(args.save_model):
+                if(dev_dice[0] > best_dice[0] or dev_dice[1] > best_dice[1]):
+                    print("Best model found")
+                    torch.save(model.state_dict(), timeStr + "model/dice"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_dice) + ".pt")
+                if(dev_dice[0] > best_dice[0]):
+                    best_dice[0] = dev_dice[0]
+                if(dev_dice[1] > best_dice[1]):
+                    best_dice[1] = dev_dice[1]
+
+            #if(args.save_model and (dev_jaccard > best_jaccard)):
+            #    torch.save(model.state_dict(), timeStr + "model/jaccard"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_jaccard) + ".pt")
+            #    best_jaccard = dev_jaccard
 
             model.train()
 

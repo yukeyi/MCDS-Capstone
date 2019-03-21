@@ -6,18 +6,16 @@ import shutil
 import argparse
 from multiprocessing.dummy import Pool
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from PIL import Image
-from sklearn.model_selection import train_test_split
-from sklearn.externals import joblib
-from skimage.morphology import binary_opening, disk, label
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
 from torchsummary import summary
+try:
+    from itertools import  ifilterfalse
+except ImportError: # py3k
+    from itertools import  filterfalse as ifilterfalse
 
 
 import torchvision.transforms as transforms
@@ -303,14 +301,24 @@ class MyCustomDataset(Dataset):
 
 def get_loss(dl, model):
     loss = 0
-    for X, y in dl:
-        X, y = Variable(X).cuda(), Variable(y).cuda()
-        output = model(X)
-        loss += F.cross_entropy(output, y.long()).data[0]
-    loss = loss / len(dl)
-    return loss
+    if (args.use_lovasz):
+        for X, y in dl:
+            X, y = Variable(X).cuda(), Variable(y).cuda()
+            logits_z = model(X)
+            softmax_output_z = nn.Softmax()(logits_z)
+            vprobas, vlabels = flatten_probas(softmax_output_z, y.long())
+            loss += lovasz_softmax_flat(vprobas, vlabels).data[0]
+        loss = loss / len(dl)
+        return loss
+    else:
+        for X, y in dl:
+            X, y = Variable(X).cuda(), Variable(y).cuda()
+            output = model(X)
+            loss += F.cross_entropy(output, y.long()).data[0]
+        loss = loss / len(dl)
+        return loss
 
-
+''' # old version 
 def one_hot(x, classes):
     #print(x.shape)
     #print(x.dtype)
@@ -318,7 +326,7 @@ def one_hot(x, classes):
     x_one_hot = np.zeros((classes, length))
     x_one_hot[x, np.arange(length)] = 1
     return x_one_hot
-
+'''
 
 '''
 label: ground truth label matrix or tensor
@@ -326,7 +334,7 @@ target: predicted label matrix or tensor
 classes: number of classes in the label
 '''
 
-
+''' # old version 
 def dice_score(label, target, classes):
     smooth = 1.
 
@@ -341,7 +349,49 @@ def dice_score(label, target, classes):
 
     return ((2. * intersection + smooth).sum() /
             (normalization + smooth).sum())
+'''
 
+'''
+main_class: the class that you want to predict as one, must be a single value
+'''
+
+
+def binary_vector(x, main_class):
+    length = len(x)
+    binary = np.zeros(length)
+    binary = main_class
+
+    return (binary == x).astype(int)
+
+
+'''
+classes: a list of labels that we want for binary comparison
+e.g. [1, 2] will return a list of two scores. The first index
+is the score of regarding 1 as 1 and 2 as 0. The second is the
+score of regarding 2 as 1 and 1 as 0. 
+
+*WARNING: label and target must be of the same dimension. 
+'''
+
+
+def binary_dice_score(label, target, classes):
+    scores = []
+    smooth = 1
+
+    for cls in classes:
+        label_binary = binary_vector(label.flatten(), cls)
+        #print("label_binary")
+        #print(label_binary)
+        target_binary = binary_vector(target.flatten(), cls)
+        #print("target_binary")
+        #print(target_binary)
+        intersection = np.sum(label_binary * target_binary)
+        normalization = np.sum(label_binary + target_binary)
+        score = ((2. * intersection + smooth).sum() /
+                 (normalization + smooth).sum())
+        scores.append(score)
+        #print("--------------------")
+    return scores
 
 '''
 label: predicted label matrix or tensor
@@ -350,7 +400,7 @@ classes: number of classes in the label
 *WARNING: label and target must be of the same dimension. 
 '''
 
-
+''' # old version 
 def jaccard_index(label, target):
     label_flat = label.flatten()
     target_flat = target.flatten()
@@ -361,6 +411,89 @@ def jaccard_index(label, target):
     intersection = (label_flat == target_flat).astype(int).sum()
 
     return intersection / union
+'''
+
+def isnan(x):
+    return x != x
+
+def mean(l, ignore_nan=False, empty=0):
+    """
+    nanmean compatible with generators.
+    """
+    l = iter(l)
+    if ignore_nan:
+        l = ifilterfalse(isnan, l)
+    try:
+        n = 1
+        acc = next(l)
+    except StopIteration:
+        if empty == 'raise':
+            raise ValueError('Empty mean')
+        return empty
+    for n, v in enumerate(l, 2):
+        acc += v
+    if n == 1:
+        return acc
+    return acc / n
+
+
+def lovasz_grad(gt_sorted):
+    """
+    Computes gradient of the Lovasz extension w.r.t sorted errors
+    See Alg. 1 in paper
+    """
+    p = len(gt_sorted)
+    gts = gt_sorted.sum()
+    intersection = gts - gt_sorted.float().cumsum(0)
+    union = gts + (1 - gt_sorted).float().cumsum(0)
+    jaccard = 1. - intersection / union
+    if p > 1: # cover 1-pixel case
+        jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
+    return jaccard
+
+def lovasz_softmax_flat(probas, labels, classes='present'):
+    """
+    Multi-class Lovasz-Softmax loss
+      probas: [P, C] Variable, class probabilities at each prediction (between 0 and 1)
+      labels: [P] Tensor, ground truth labels (between 0 and C - 1)
+      classes: 'all' for all, 'present' for classes present in labels, or a list of classes to average.
+    """
+    if probas.numel() == 0:
+        # only void pixels, the gradients should be 0
+        return probas * 0.
+    C = probas.size(1)
+    losses = []
+    class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
+    for c in class_to_sum:
+        fg = (labels == c).float() # foreground for class c
+        if (classes is 'present' and fg.sum() == 0):
+            continue
+        if C == 1:
+            if len(classes) > 1:
+                raise ValueError('Sigmoid output possible only with 1 class')
+            class_pred = probas[:, 0]
+        else:
+            class_pred = probas[:, c]
+        errors = (Variable(fg) - class_pred).abs()
+        errors_sorted, perm = torch.sort(errors, 0, descending=True)
+        perm = perm.data
+        fg_sorted = fg[perm]
+        losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
+    return mean(losses)
+
+def flatten_probas(probas, labels, ignore=None):
+    """
+    Flattens predictions in the batch
+    """
+    B, C, H, W = probas.size()
+    probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
+    labels = labels.view(-1)
+    if ignore is None:
+        return probas, labels
+    valid = (labels != ignore)
+    vprobas = probas[valid.nonzero().squeeze()]
+    vlabels = labels[valid]
+    return vprobas, vlabels
 
 
 def get_accuracy(dl, model):
@@ -404,11 +537,25 @@ def get_dice_score(dl, model):
         ground_truth = label_original[heart_index[dev_heart][1]].astype("int64")
         #print(ground_truth.shape)
         #score = dice_score(y.data.numpy().astype("int64"),np.argmax(output.data.numpy().astype("int64"),axis=1), 3)
-        score = dice_score(ground_truth,predicted_origin, 3)
+        score = binary_dice_score(ground_truth,predicted_origin, [1,2])
         #print(batch_num)
         #batch_num += 1
 
     return score
+
+def binary_jaccard_index(label, target, classes):
+    scores = []
+    assert (len(label.flatten()) == len(target.flatten()))
+    for cls in classes:
+        label_binary = binary_vector(label.flatten(), cls)
+        target_binary = binary_vector(target.flatten(), cls)
+        length = len(label_binary)
+
+        union = (label_binary != target_binary).astype(int).sum() + length
+        intersection = (label_binary == target_binary).astype(int).sum()
+
+        scores.append(intersection / union)
+    return scores
 
 def get_jaccard_score(dl, model):
 
@@ -438,7 +585,7 @@ def get_jaccard_score(dl, model):
 parser = argparse.ArgumentParser(description='UNET Implementation')
 parser.add_argument('--batch-size', type=int, default=4, metavar='N',
                     help='input batch size for training (default: 4)')
-parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
+parser.add_argument('--test-batch-size', type=int, default=100, metavar='N',
                     help='input batch size for testing (default: 1000)')
 parser.add_argument('--epochs', type=int, default=20, metavar='N',
                     help='number of epochs to train (default: 20)')
@@ -454,6 +601,8 @@ parser.add_argument('--log-interval', type=int, default=1, metavar='N',
                     help='how many epoches between logging training status')
 parser.add_argument('--save-model', action='store_true', default=True,
                     help='For Saving the current Model')
+parser.add_argument('--use-lovasz', action='store_true', default=False,
+                    help='Whether use lovasz cross-entropy')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
 parser.add_argument('--load-model', type=str, default='', metavar='N',
@@ -483,7 +632,7 @@ while(dev_heart < 10):
     summary(model, input_size=(1, args.figuresize, args.figuresize))
     model.train()
 
-    best_dice = 0
+    best_dice = [0.0, 0.0]
     best_jaccard = 0
     optim = torch.optim.Adam(model.parameters(),lr=args.lr)
 
@@ -495,8 +644,17 @@ while(dev_heart < 10):
         for batch_idx, (data, label) in enumerate(train_loader):
 
             data, target = data.to(device), label.to(device)
-            output = model(data)
-            loss = F.cross_entropy(output, target.long())
+
+            if (args.use_lovasz):
+                logits_z = model(data)
+                softmax_output_z = nn.Softmax()(logits_z)
+                vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
+                loss = lovasz_softmax_flat(vprobas, vlabels)
+            else:
+                output = model(data)
+                loss = F.cross_entropy(output, target.long())
+                #logsoftmax_output_z = model(data)
+                #loss = nn.NLLLoss()(logsoftmax_output_z, target.long())
 
             optim.zero_grad()
             loss.backward()
@@ -511,21 +669,29 @@ while(dev_heart < 10):
             print(train_loss)
             train_acc = get_accuracy(train_loader, model)
             dev_dice = get_dice_score(dev_loader, model)
-            dev_jaccard = get_jaccard_score(dev_loader, model)
+            #dev_jaccard = get_jaccard_score(dev_loader, model)
             dev_acc = get_accuracy(dev_loader, model)
             print("Training accuracy : " + str(train_acc))
             print("Dev dice score : " + str(dev_dice))
-            print("Dev jaccard score : " + str(dev_jaccard))
+            #print("Dev jaccard score : " + str(dev_jaccard))
             print("Dev accuracy : " + str(dev_acc))
             if(train_acc < 0.01):
                 print("Bad initialization")
                 exit(0)
-            if(args.save_model and (dev_dice > best_dice)):
-                torch.save(model.state_dict(), timeStr + "model/dice"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_dice) + ".pt")
-                best_dice = dev_dice
-            if(args.save_model and (dev_jaccard > best_jaccard)):
-                torch.save(model.state_dict(), timeStr + "model/jaccard"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_jaccard) + ".pt")
-                best_jaccard = dev_jaccard
+
+            if(args.save_model):
+                if(dev_dice[0] > best_dice[0] or dev_dice[1] > best_dice[1]):
+                    print("Best model found")
+                    torch.save(model.state_dict(),
+                               timeStr + "model/dice" + str(heart_index[dev_heart][1]) + "/" + str(epoch) + ":" + str(
+                                   dev_dice) + ".pt")
+                if(dev_dice[0] > best_dice[0]):
+                    best_dice[0] = dev_dice[0]
+                if(dev_dice[1] > best_dice[1]):
+                    best_dice[1] = dev_dice[1]
+            #if(args.save_model and (dev_jaccard > best_jaccard)):
+            #    torch.save(model.state_dict(), timeStr + "model/jaccard"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_jaccard) + ".pt")
+            #    best_jaccard = dev_jaccard
 
             model.train()
 

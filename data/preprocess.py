@@ -4,51 +4,61 @@ from skimage import io
 import SimpleITK as sitk
 import sys, os
 import numpy as np
+import dicom
 
+# save the correspoding labels
+def getLabels (IMG,files):
+    imgLabel = np.zeros(IMG.shape)
+    cnt = 0
+    # sort the label files
+    order = []
+    for f in files:
+        f = f[:-4]
+        f = int(f.split('ph')[-1])
+        order.append(f)
 
-print( "Reading Dicom directory:", sys.argv[1] )
-reader = sitk.ImageSeriesReader()
-
-dicom_names = reader.GetGDCMSeriesFileNames( sys.argv[1] )
-reader.SetFileNames(dicom_names)
-
-image = reader.Execute()
-
-size = image.GetSize()
-print( "Image size:", size[0], size[1], size[2] )
-
-print( "Writing image:", sys.argv[2] )
-
-sitk.WriteImage( image, sys.argv[2]+".nii" )
-
-
-IMG = sitk.GetArrayFromImage(image)
-print(IMG.shape)
-
-
-imgLabel = np.zeros(IMG.shape)
-print(imgLabel.shape)
-cnt = 0
-files = []
-for root, directories, filenames in os.walk(sys.argv[1]):
-    for i in filenames:
-        if i.endswith('.png'):
-            files.append(i)
-
-    for f in sorted(files):
-        f = os.path.join(root,f)
+    root = files[0].split('ph')[0] + 'ph'
+    for num in sorted(order):
+        f = root+str(num)+'.png'
         img = color.rgb2gray(io.imread(f))
         imgLabel[cnt,:,:]  = img
         cnt = cnt + 1
 
-spacing = image.GetSpacing()
-origin = image.GetOrigin()
-direction = image.GetDirection()
+    imgLabel = np.where(imgLabel!=0,1,imgLabel)
+    return imgLabel
 
-imgLabel2 = sitk.GetImageFromArray(imgLabel)
-imgLabel2.SetSpacing(spacing)
-imgLabel2.SetDirection(direction)
-imgLabel2.SetOrigin(origin)
+def getName(dirname):
+    name = dirname.split('/')
+    name = name[-1]
+    name = ''.join(name.split('_')[0:2])
+    return name
 
-# sitk.WriteImage(image, output_image+"nii")
-sitk.WriteImage(imageLabel2, output_image+"_label.nii")
+def processDirectory(dir):
+    print( "Reading Dicom directory:", dir )
+    reader = sitk.ImageSeriesReader()
+    series_ids = reader.GetGDCMSeriesIDs(dir)
+    for i in series_ids:
+        dicom_names = reader.GetGDCMSeriesFileNames( dir,i )
+        reader.SetFileNames(dicom_names)
+        image = reader.Execute()
+
+        name = getName(dicom_names[0])
+        sitk.WriteImage(image, name+".nii" )
+        IMG = sitk.GetArrayFromImage(image)
+
+        spacing = image.GetSpacing()
+        origin = image.GetOrigin()
+        direction = image.GetDirection()
+        imgLabel = getLabels(IMG,dicom_names)
+        imgLabel2 = sitk.GetImageFromArray(imgLabel)
+        imgLabel2.SetSpacing(spacing)
+        imgLabel2.SetDirection(direction)
+        imgLabel2.SetOrigin(origin)
+
+        sitk.WriteImage(imgLabel2, name+"_label.nii")
+
+
+for root, directories, filenames in os.walk(sys.argv[1]):
+    for d in directories:
+        processDirectory(os.path.join(root,d))
+    

@@ -1,3 +1,6 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
 # ignore all python notebook checkpoint files
 .ipynb_checkpoints
 kaggleUnet/.ipynb_checkpoints/

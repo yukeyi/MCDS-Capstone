@@ -23,3 +23,15 @@ These are the required readings. Those already read are marked '√' in the fron
 8. The Lov ́asz-Softmax loss: A tractable surrogate for the optimization of theintersection-over-union measure in neural networks:
      https://arxiv.org/pdf/1705.08790.pdf
      code: https://github.com/bermanmaxim/LovaszSoftmax
+
+Interpretability:
+1. https://arxiv.org/pdf/1805.12323.pdf
+2. https://arxiv.org/abs/1711.05611
+
+Source code:https://github.com/jimmyyhwu/ddsm-visual-primitives
+
+Self-supervised Learning:
+1. https://arxiv.org/abs/1903.02678
+2. https://arxiv.org/pdf/1505.05192.pdf
+
+SimpleElastix: https://simpleelastix.github.io/

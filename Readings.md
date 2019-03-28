@@ -25,13 +25,16 @@ These are the required readings. Those already read are marked '√' in the fron
      code: https://github.com/bermanmaxim/LovaszSoftmax
 
 Interpretability:
-1. https://arxiv.org/pdf/1805.12323.pdf
-2. https://arxiv.org/abs/1711.05611
+1. DeepMiner: https://arxiv.org/pdf/1805.12323.pdf
+2. Dissection: https://arxiv.org/abs/1711.05611
 
 Source code:https://github.com/jimmyyhwu/ddsm-visual-primitives
 
 Self-supervised Learning:
-1. https://arxiv.org/abs/1903.02678
-2. https://arxiv.org/pdf/1505.05192.pdf
+1. Visual Patterns in art collection: https://arxiv.org/abs/1903.02678
+2. Context Prediction: https://arxiv.org/pdf/1505.05192.pdf
+3. Github compilation: https://github.com/jason718/awesome-self-supervised-learning
 
 SimpleElastix: https://simpleelastix.github.io/
+
+New Dataset: http://www.cardiacatlas.org/challenges/lv-segmentation-challenge/

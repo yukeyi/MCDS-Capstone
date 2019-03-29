@@ -4,7 +4,14 @@ from skimage import io
 import SimpleITK as sitk
 import sys, os
 import numpy as np
-import dicom
+
+"""
+    Usage: python preprocess.py DIR/TO/DATA
+    DIR/TO/DATA: /pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/
+"""
+
+# directory where the data will be saved
+SAVE_DIR = "data/"
 
 # save the correspoding labels
 def getLabels (IMG,files):
@@ -20,6 +27,7 @@ def getLabels (IMG,files):
     root = files[0].split('ph')[0] + 'ph'
     for num in sorted(order):
         f = root+str(num)+'.png'
+        # convert png to grayscale
         img = color.rgb2gray(io.imread(f))
         imgLabel[cnt,:,:]  = img
         cnt = cnt + 1
@@ -37,15 +45,18 @@ def processDirectory(dir):
     print( "Reading Dicom directory:", dir )
     reader = sitk.ImageSeriesReader()
     series_ids = reader.GetGDCMSeriesIDs(dir)
+    # for each series
     for i in series_ids:
+        # read the image series
         dicom_names = reader.GetGDCMSeriesFileNames( dir,i )
         reader.SetFileNames(dicom_names)
         image = reader.Execute()
 
         name = getName(dicom_names[0])
-        sitk.WriteImage(image, name+".nii" )
+        sitk.WriteImage(image, SAVE_DIR+ name+".nii" )
         IMG = sitk.GetArrayFromImage(image)
 
+        # set label.nii with image metadata
         spacing = image.GetSpacing()
         origin = image.GetOrigin()
         direction = image.GetDirection()
@@ -54,11 +65,18 @@ def processDirectory(dir):
         imgLabel2.SetSpacing(spacing)
         imgLabel2.SetDirection(direction)
         imgLabel2.SetOrigin(origin)
+        sitk.WriteImage(imgLabel2, SAVE_DIR+name+"_label.nii")
 
-        sitk.WriteImage(imgLabel2, name+"_label.nii")
-
-
-for root, directories, filenames in os.walk(sys.argv[1]):
-    for d in directories:
-        processDirectory(os.path.join(root,d))
+if __name__ == '__main__':
+    # create the data directory
+    try:
+        os.mkdir(SAVE_DIR)
+    except OSError:
+        print("Creation of the directory %s failed" % SAVE_DIR)
+    else:
+        print("Successfully created the directory %s" % SAVE_DIR)
+    # loop through all the subdirectories
+    for root, directories, filenames in os.walk(sys.argv[1]):
+        for d in directories:
+            processDirectory(os.path.join(root,d))
     

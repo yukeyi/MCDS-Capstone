@@ -11,7 +11,7 @@ import numpy as np
 """
 
 # directory where the data will be saved
-SAVE_DIR = "data/"
+SAVE_DIR = "new_data/"
 
 # save the correspoding labels
 def getLabels (IMG,files):

@@ -27,6 +27,7 @@ def getLabels (IMG,files):
     root = files[0].split('ph')[0] + 'ph'
     for num in sorted(order):
         f = root+str(num)+'.png'
+        print(f)
         # convert png to grayscale
         img = color.rgb2gray(io.imread(f))
         imgLabel[cnt,:,:]  = img
@@ -41,6 +42,20 @@ def getName(dirname):
     name = ''.join(name.split('_')[0:2])
     return name
 
+# reading labels just in the order of files
+def getLabel_new(IMG,files):
+    imgLabel = np.zeros(IMG.shape)
+    cnt = 0
+    for f in files:
+        f = f[:-4]+'.png'
+        img = color.rgb2gray(io.imread(f))
+        imgLabel[cnt,:,:]  = img
+        cnt = cnt + 1
+
+    imgLabel = np.where(imgLabel!=0,1,imgLabel)
+    return imgLabel
+
+
 def processDirectory(dir):
     print( "Reading Dicom directory:", dir )
     reader = sitk.ImageSeriesReader()
@@ -50,6 +65,7 @@ def processDirectory(dir):
         # read the image series
         dicom_names = reader.GetGDCMSeriesFileNames( dir,i )
         reader.SetFileNames(dicom_names)
+        
         image = reader.Execute()
 
         name = getName(dicom_names[0])
@@ -60,7 +76,7 @@ def processDirectory(dir):
         spacing = image.GetSpacing()
         origin = image.GetOrigin()
         direction = image.GetDirection()
-        imgLabel = getLabels(IMG,dicom_names)
+        imgLabel = getLabel_new(IMG,dicom_names)
         imgLabel2 = sitk.GetImageFromArray(imgLabel)
         imgLabel2.SetSpacing(spacing)
         imgLabel2.SetDirection(direction)

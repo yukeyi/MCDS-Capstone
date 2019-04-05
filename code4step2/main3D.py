@@ -177,7 +177,8 @@ def get_loss(dl, model):
             X, y = Variable(X).cuda(), Variable(y).cuda()
             #X, y = Variable(X), Variable(y)
             output = model(X)
-            loss += nn.NLLLoss()(output, y.long()).item()
+            loss += nn.NLLLoss(reduce=False)(output, y.long())
+            loss = (loss.double() * (args.augmentation * y.double() + 1)).mean().item()
         loss = loss / len(dl)
         return loss
 
@@ -337,6 +338,7 @@ def get_dice_score(dl, model):
         predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
         #print(predicted.shape)
 
+
         predicted_origin = [0]*predicted.shape[0]
         for idx in range(len(predicted)):
             img = predicted[idx, :, :]
@@ -352,7 +354,10 @@ def get_dice_score(dl, model):
             predicted_origin2[:, idx, :] = img_sm
 
         ground_truth = label_original[dev_heart].astype("int64")
+
         score = binary_dice_score(ground_truth,predicted_origin2.astype("int64"), [1])
+
+        # score = binary_dice_score(np.array(y).astype("int64"),np.array(predicted).astype("int64"), [1])
         dev_heart += 1
 
     return score
@@ -418,7 +423,7 @@ def save_sample_result(dl, model, epoch, sample_num = 5):
         predicted = np.argmax(output.data.numpy(),axis=1)
         predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
         #print(predicted.shape)
-
+        '''
         predicted_origin = [0]*predicted.shape[0]
         for idx in range(len(predicted)):
             img = predicted[idx, :, :]
@@ -434,12 +439,19 @@ def save_sample_result(dl, model, epoch, sample_num = 5):
             predicted_origin2[:, idx, :] = img_sm
 
         ground_truth = label_original[dev_heart].astype("int64")
+        '''
         dev_heart += 1
         count += 1
-        sitk.WriteImage(sitk.GetImageFromArray(ground_truth),
+
+        #sitk.WriteImage(sitk.GetImageFromArray(ground_truth),
+        #                timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "reference.nii")
+
+        #sitk.WriteImage(sitk.GetImageFromArray(predicted_origin2.astype("int64")),
+        #                timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "predict.nii")
+        sitk.WriteImage(sitk.GetImageFromArray(np.array(y).astype("int64")),
                         timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "reference.nii")
 
-        sitk.WriteImage(sitk.GetImageFromArray(predicted_origin2.astype("int64")),
+        sitk.WriteImage(sitk.GetImageFromArray(np.array(predicted).astype("int64")),
                         timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "predict.nii")
         if(count == sample_num):
             break
@@ -466,6 +478,8 @@ parser.add_argument('--num_dev', type=int, default=10, metavar='N',
                     help='number of data for evaluation')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
+parser.add_argument('--augmentation', type=float, default=5.0, metavar='LR',
+                    help='weight for lebeled object')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
@@ -524,8 +538,8 @@ for epoch in range(args.epochs):
             loss = lovasz_softmax_flat(vprobas, vlabels)
         else:
             logsoftmax_output_z = model(data)
-            loss = nn.NLLLoss()(logsoftmax_output_z, target.long())
-
+            loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
+            loss = (loss.double()*(args.augmentation*target+1)).mean()
         optim.zero_grad()
         loss.backward()
         optim.step()
@@ -554,10 +568,7 @@ for epoch in range(args.epochs):
                 torch.save(model.state_dict(), timeStr + "model/dice/" + str(epoch) + ":" + str(dev_dice) + ".pt")
                 best_dice = dev_dice
 
-        save_sample_result(dev_loader, model, epoch, 5)
-        #if(args.save_model and (dev_jaccard > best_jaccard)):
-        #    torch.save(model.state_dict(), timeStr + "model/jaccard"+str(heart_index[dev_heart][1])+"/" + str(epoch) + ":" + str(dev_jaccard) + ".pt")
-        #    best_jaccard = dev_jaccard
+        save_sample_result(dev_loader, model, epoch, 1)
 
         model.train()
 

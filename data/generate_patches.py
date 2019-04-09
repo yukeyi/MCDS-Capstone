@@ -24,6 +24,7 @@ def Image_generate_patches(img_dir):
 						#patches.append(img_patch)
 						img_patch = Image.fromarray(img_patch, 'RGB')
 						img_patch.save(dirName+"/"+"_x"+str(x)+"_y"+str(y)+".png")
+				print(filename)
 
 if __name__ == '__main__':
 	Image_generate_patches("./NYC")

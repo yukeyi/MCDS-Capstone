@@ -29,6 +29,7 @@ Interpretability:
 2. Dissection: https://arxiv.org/abs/1711.05611
 
 Source code:https://github.com/jimmyyhwu/ddsm-visual-primitives
+Dataset:https://www.crcv.ucf.edu/data/GMCP_Geolocalization/#Dataset
 
 Self-supervised Learning:
 1. Visual Patterns in art collection: https://arxiv.org/abs/1903.02678

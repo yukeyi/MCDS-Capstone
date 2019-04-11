@@ -24,9 +24,10 @@ class ImageDataset(Dataset):
         return img, label
 
 #given root directory parse data
-def parse_data(datadir):
+def parse_data(datadir, max_count):
     img_list = []
     label_list = []
+    count = 0
     for root, directories, filenames in os.walk(datadir):
         for filename in filenames:
             if filename.endswith('.png'):
@@ -36,23 +37,27 @@ def parse_data(datadir):
                 	label_list.append(0)
                 else:
                 	label_list.append(1)
+                count += 1
+        if count > max_count:
+            print('{}\t\t{}\n'.format('#Images', len(img_list)))
+            return img_list, label_list
 
-    print('{}\t\t{}\n'.format('#Images', len(img_list)))
-    return img_list, label_list
 
+
+    
 
 def get_loader(mode="train"):
     loader = None
     if mode == "train":
         data_path = "/pylon5/ac5616p/baij/DeepMiner/Val/"
         shuffle = True
-        img_list, label_list = parse_data(data_path)
+        img_list, label_list = parse_data(data_path, 10000)
         dataset = ImageDataset(img_list, label_list)
         loader = DataLoader(dataset, shuffle=shuffle, batch_size=32, drop_last=False)
     if mode == "val":
         data_path = "/pylon5/ac5616p/baij/DeepMiner/Train/"
         shuffle = False
-        img_list, label_list = parse_data(data_path)
+        img_list, label_list = parse_data(data_path, 2000)
         dataset = ImageDataset(img_list, label_list)
         loader = DataLoader(dataset, shuffle=shuffle, batch_size=32, drop_last=False)
 

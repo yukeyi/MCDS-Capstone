@@ -20,7 +20,7 @@ def walk(path):
             path = os.path.join(root,direct)
             print(path)
             # if check is 0 or 1, put into validation set
-            if check > 1:
+            if check < 2:
                 move(path,"Val/"+path)
             # else, put into train set
             else:

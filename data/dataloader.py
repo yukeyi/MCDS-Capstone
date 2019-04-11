@@ -42,17 +42,18 @@ def parse_data(datadir):
 
 
 def get_loader(mode="train"):
+    loader = None
     if mode == "train":
-        data_path = paths.train_data
+        data_path = "/pylon5/ac5616p/baij/DeepMiner/Val/"
         shuffle = True
         img_list, label_list = parse_data(data_path)
         dataset = ImageDataset(img_list, label_list)
-        dataloader = DataLoader(dataset, shuffle=shuffle, batch_size=config.batch_size, drop_last=False)
+        loader = DataLoader(dataset, shuffle=shuffle, batch_size=32, drop_last=False)
     if mode == "val":
-        data_path = paths.valid_data
+        data_path = "/pylon5/ac5616p/baij/DeepMiner/Train/"
         shuffle = False
         img_list, label_list = parse_data(data_path)
         dataset = ImageDataset(img_list, label_list)
-        dataloader = DataLoader(dataset, shuffle=shuffle, batch_size=config.batch_size, drop_last=False)
+        loader = DataLoader(dataset, shuffle=shuffle, batch_size=32, drop_last=False)
 
-    return dataloader
+    return loader

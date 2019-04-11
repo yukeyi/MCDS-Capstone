@@ -19,6 +19,7 @@ class ImageDataset(Dataset):
     def __getitem__(self, index):
         img = Image.open(self.file_list[index])
         img = torchvision.transforms.ToTensor()(img)
+        img = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(img)
         label = self.target_list[index]
         return img, label
 

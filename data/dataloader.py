@@ -27,20 +27,29 @@ class ImageDataset(Dataset):
 def parse_data(datadir, max_count):
     img_list = []
     label_list = []
-    count = 0
+    count_pit = 0
+    count_nyu = 0
     for root, directories, filenames in os.walk(datadir):
         for filename in filenames:
             if filename.endswith('.png'):
                 filei = os.path.join(root, filename)
-                img_list.append(filei)
+                #img_list.append(filei)
                 if "NYC" in filei:
-                	label_list.append(0)
+                    if(count_nyu > max_count):
+                        continue
+                    else:
+                        label_list.append(0)
+                        img_list.append(filei)
+                        count_nyu += 1
                 else:
-                	label_list.append(1)
-                count += 1
-        if count > max_count:
-            print('{}\t\t{}\n'.format('#Images', len(img_list)))
-            return img_list, label_list
+                    if(count_pit > max_count):
+                        continue
+                    else:
+                        label_list.append(1)
+                        img_list.append(filei)
+                        count_pit += 1
+    print('{}\t\t{}\n'.format('#Images', len(img_list)))
+    return img_list, label_list
 
 
 
@@ -51,13 +60,13 @@ def get_loader(mode="train"):
     if mode == "train":
         data_path = "/pylon5/ac5616p/baij/DeepMiner/Val/"
         shuffle = True
-        img_list, label_list = parse_data(data_path, 10000)
+        img_list, label_list = parse_data(data_path, 5000)
         dataset = ImageDataset(img_list, label_list)
         loader = DataLoader(dataset, shuffle=shuffle, batch_size=32, drop_last=False)
     if mode == "val":
         data_path = "/pylon5/ac5616p/baij/DeepMiner/Train/"
         shuffle = False
-        img_list, label_list = parse_data(data_path, 2000)
+        img_list, label_list = parse_data(data_path, 1000)
         dataset = ImageDataset(img_list, label_list)
         loader = DataLoader(dataset, shuffle=shuffle, batch_size=32, drop_last=False)
 

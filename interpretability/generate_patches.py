@@ -27,7 +27,7 @@ def generate(filename):
 		for y in range(0, img_height - patch_size, stride):
 			img_patch = img[x:x+patch_size,y:y+patch_size,:]
 			img_patch = Image.fromarray(img_patch, 'RGB')
-			img_patch.save(dirName+"/"+"_x"+str(x)+"_y"+str(y)+".png")
+			img_patch.save(dirName+"/"+filename.split(".jpg")[0]+"_x"+str(x)+"_y"+str(y)+".png")
 	print(filename)
 
 def loop_directory(img_dir):

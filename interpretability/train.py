@@ -18,12 +18,12 @@ from torch.autograd import Variable
 
 import dataset
 import dataloader
-import sys
 
 # pytorch 1.0 and torchvision 0.1.9
 import torchvision
+import sys
 #assert '0.1.9' in torchvision.__file__
-sys.stdout = open("train_output.txt", "w+")
+sys.stdout = open("/pylon5/ac5616p/faqian/ddsm-visual-primitives/training/train_out.txt", "w+")
 
 def accuracy(output, target):
     pred = output.max(1)[1]
@@ -74,10 +74,15 @@ def train(train_loader, model, criterion, optimizer, epoch):
     end = time.time()
     for i, (input_list, target, patch_starting_pts, patch_size) in enumerate(train_loader):
         data_time.update(time.time() - end)
+        #input_list = input_list.cuda(non_blocking=True)
         target = target.cuda(non_blocking=True)
-        x1,x2,x3,x4 = input_list.shape
+        #print("print concat shape")
+        #print(input_list.shape)
         for j in range(4):
-            input = input_list[:,:,x4*j:x4*j+x4,:]
+            input = input_list[:,:,j*227:j*227+227,:]
+            #print("each input shape")
+            #input = input.permute(0,3,1,2)
+            #print(input.shape)
             output = model(input)
             loss = criterion(output, target)
 
@@ -94,18 +99,12 @@ def train(train_loader, model, criterion, optimizer, epoch):
             batch_time.update(time.time() - end)
             end = time.time()
             
+            torch.cuda.empty_cache()
+            del input
             del loss
             del output
 
         if i % cfg.training.print_freq == 0:
-            # output_file.write('Epoch: [{0}][{1}/{2}]\t'
-            #       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-            #       'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-            #       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-            #       'Accuracy {accuracy.val:.4f} ({accuracy.avg:.4f})'.format(
-            #        epoch, i, len(train_loader), batch_time=batch_time,
-            #        data_time=data_time, loss=losses, accuracy=accuracies)
-            #       )
             print('Epoch: [{0}][{1}/{2}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
@@ -113,8 +112,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
                   'Accuracy {accuracy.val:.4f} ({accuracy.avg:.4f})'.format(
                    epoch, i, len(train_loader), batch_time=batch_time,
                    data_time=data_time, loss=losses, accuracy=accuracies))
-    del input_list
-    del target
+        del input_list
+        del target
 
     return batch_time.avg, data_time.avg, losses.avg, accuracies.avg, auc.value()[0]
 
@@ -129,9 +128,8 @@ def validate(val_loader, model, criterion):
     with torch.no_grad():
         for i, (input_list, target, patch_starting_pts, patch_size) in enumerate(val_loader):
             target = target.cuda(non_blocking=True)
-            x1,x2,x3,x4 = input_list.shape
             for j in range(4):
-                input = input_list[:,:,x4*j:x4*j+x4,:]
+                input = input_list[:,:,j*227:j*227+227,:]
                 output = model(input)
                 loss = criterion(output, target)
                 acc = accuracy(output, target)
@@ -143,6 +141,8 @@ def validate(val_loader, model, criterion):
                 batch_time.update(time.time() - end)
                 end = time.time()
                 
+                torch.cuda.empty_cache()
+                del input
                 del loss
                 del output
 
@@ -152,8 +152,8 @@ def validate(val_loader, model, criterion):
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'Accuracy {accuracy.val:.4f} ({accuracy.avg:.4f})'.format(
                        i, len(val_loader), batch_time=batch_time, loss=losses, accuracy=accuracies))
-    del target
-    del input_list
+            del target
+            del input_list
 
     return batch_time.avg, losses.avg, accuracies.avg, auc.value()[0]
 
@@ -179,7 +179,6 @@ def main(cfg):
     model = models.__dict__[cfg.arch.model](pretrained=cfg.arch.pretrained)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(device)
 
     if cfg.arch.model.startswith('alexnet') or cfg.arch.model.startswith('vgg'):
         model.classifier._modules['6'] = nn.Linear(4096, cfg.arch.num_classes)
@@ -189,7 +188,8 @@ def main(cfg):
     elif cfg.arch.model == 'resnet152':
         model.fc = nn.Linear(2048, cfg.arch.num_classes)
     elif cfg.arch.model == 'resnet18':
-        model.fc = nn.Linear(512, cfg.arch.num_classes)
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, cfg.arch.num_classes)
     else:
         raise Exception
 

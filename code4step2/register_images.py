@@ -1,5 +1,6 @@
 import os
 import shutil
+import pickle as pkl
 import numpy as np
 import SimpleITK as sitk
 from data_registration import RegHearts
@@ -38,13 +39,9 @@ def main():
         except OSError:
             pass
 
-        origin = 'TransformParameters.0.txt'
-        dest = LOAD_DIR+fixed_patient+'/'+moving_patient + '/TransformParameters.0.txt'
-        shutil.copy(origin, dest)
-
-        origin = 'TransformParameters.1.txt'
-        dest = LOAD_DIR+fixed_patient+'/'+moving_patient + '/TransformParameters.1.txt'
-        shutil.copy(origin, dest)
+        my_map = reg.elastixImageFilter.GetTransformParameterMap()
+        f = open(os.path.join(LOAD_DIR+fixed_patient, moving_patient, 'transform_map.pkl'), 'wb')
+        pkl.dump(my_map, f, 2) # this saves a python object to a pickle file
     
     with open('pairs_not_registered.csv', 'w') as f:
     for item in error:

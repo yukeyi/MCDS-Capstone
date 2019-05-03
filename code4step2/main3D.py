@@ -165,7 +165,7 @@ def get_loss(dl, model):
     loss = 0
     if (args.use_lovasz):
         for X, y in dl:
-            X, y = Variable(X).cuda(), Variable(y).cuda()
+            X, y = Variable(X).to(device), Variable(y).to(device)
             #X, y = Variable(X), Variable(y)
             softmax_output_z = model(X)
             vprobas, vlabels = flatten_probas(softmax_output_z, y.long())
@@ -174,8 +174,8 @@ def get_loss(dl, model):
         return loss
     else:
         for X, y in dl:
-            X, y = Variable(X).cuda(), Variable(y).cuda()
-            #X, y = Variable(X), Variable(y)
+            #X, y = Variable(X).cuda(), Variable(y).cuda()
+            X, y = Variable(X).to(device), Variable(y).to(device)
             output = model(X)
             loss += nn.NLLLoss(reduce=False)(output, y.long())
             loss = (loss.double() * (args.augmentation * y.double() + 1)).mean().item()
@@ -312,7 +312,7 @@ def get_accuracy(dl, model):
     correct_num = 0
 
     for X, y in dl:
-        X = Variable(X).cuda()
+        X = Variable(X).to(device)#.cuda()
         output = model(X).cpu()
         #print(output.shape)
         #print(y.shape)
@@ -331,7 +331,7 @@ def get_dice_score(dl, model):
 
     dev_heart = args.num_train
     for X, y in dl:
-        X = Variable(X).cuda()
+        X = Variable(X).to(device)#.cuda()
         output = model(X).cpu()
         #print(output.shape)
         predicted = np.argmax(output.data.numpy(),axis=1)
@@ -357,7 +357,7 @@ def get_dice_score(dl, model):
 
         score = binary_dice_score(ground_truth,predicted_origin2.astype("int64"), [1])
 
-        # score = binary_dice_score(np.array(y).astype("int64"),np.array(predicted).astype("int64"), [1])
+        #score = binary_dice_score(np.array(y).astype("int64"),np.array(predicted).astype("int64"), [1])
         dev_heart += 1
 
     return score
@@ -386,7 +386,7 @@ def get_jaccard_score(dl, model):
 
 
     for X, y in dl:
-        X = Variable(X).cuda()
+        X = Variable(X).to(device)#.cuda()
         output = model(X).cpu()
         #print(output.shape)
         predicted = np.argmax(output.data.numpy(),axis=1)
@@ -417,13 +417,13 @@ def save_sample_result(dl, model, epoch, sample_num = 5):
     count = 0
     dev_heart = args.num_train
     for X, y in dl:
-        X = Variable(X).cuda()
+        X = Variable(X).to(device)#.cuda()
         output = model(X).cpu()
         #print(output.shape)
         predicted = np.argmax(output.data.numpy(),axis=1)
         predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
         #print(predicted.shape)
-        '''
+
         predicted_origin = [0]*predicted.shape[0]
         for idx in range(len(predicted)):
             img = predicted[idx, :, :]
@@ -439,26 +439,63 @@ def save_sample_result(dl, model, epoch, sample_num = 5):
             predicted_origin2[:, idx, :] = img_sm
 
         ground_truth = label_original[dev_heart].astype("int64")
-        '''
+
         dev_heart += 1
         count += 1
 
-        #sitk.WriteImage(sitk.GetImageFromArray(ground_truth),
-        #                timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "reference.nii")
-
-        #sitk.WriteImage(sitk.GetImageFromArray(predicted_origin2.astype("int64")),
-        #                timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "predict.nii")
-        sitk.WriteImage(sitk.GetImageFromArray(np.array(y).astype("int64")),
+        sitk.WriteImage(sitk.GetImageFromArray(ground_truth),
                         timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "reference.nii")
 
-        sitk.WriteImage(sitk.GetImageFromArray(np.array(predicted).astype("int64")),
+        sitk.WriteImage(sitk.GetImageFromArray(predicted_origin2.astype("int64")),
                         timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "predict.nii")
+
+        #sitk.WriteImage(sitk.GetImageFromArray(X),
+        #                timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "image.nii")
+        #sitk.WriteImage(sitk.GetImageFromArray(np.array(y).astype("int64")),
+        #                timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "reference.nii")
+
+        #sitk.WriteImage(sitk.GetImageFromArray(np.array(predicted).astype("int64")),
+        #                timeStr + "model/dice/" + str(epoch) + "_" + str(count) + "predict.nii")
         if(count == sample_num):
             break
 
+"""
+def get_cropped_image_array(label_array, image_array = None):
+    left = -1
+    right = -1
+    up = -1
+    down = -1
+    for i in range(label_array.shape[1]):
+        j = label_array.shape[1] - i - 1
+        # haven't encountered any labels
+        if left == -1:
+            if (label_array[:, i, :]==1).sum() != 0:
+                left = i
+        if right == -1:
+            if (label_array[:, j, :]==1).sum() != 0:
+                right = j
+    for i in range(label_array.shape[2]):
+        j = label_array.shape[2] - i - 1
+        # haven't encountered any labels
+        if up == -1:
+            if (label_array[:, :, i]==1).sum() != 0:
+                up = i
+        if down == -1:
+            if (label_array[:, :, j]==1).sum() != 0:
+                down = j
+    left = 0 if left - 20 < 0 else left - 20
+    right = label_array.shape[1] - 1 if right + 20 > label_array.shape[1] - 1 else right + 20
+    up = 0 if up - 20 < 0 else up - 20
+    down = label_array.shape[2] - 1 if down + 20 > label_array.shape[2] - 1 else down + 20
+
+    if(image_array == None):
+        return (label_array[:, left:(right + 1), up:(down + 1)], left, right, up, down)
+    else:
+        return (label_array[:, left:(right + 1), up:(down + 1)], image_array[:, left:(right + 1), up:(down + 1)], left, right, up, down)
+"""
 
 parser = argparse.ArgumentParser(description='UNET Implementation')
-parser.add_argument('--batch-size', type=int, default=4, metavar='N',
+parser.add_argument('--batch-size', type=int, default=1, metavar='N',
                     help='input batch size for training (default: 1)')
 parser.add_argument('--classes', type=int, default=2, metavar='N',
                     help='total classes of task')
@@ -468,13 +505,13 @@ parser.add_argument('--slices-depth', type=int, default=8, metavar='N',
                     help='depth of each slides (default: 8)')
 parser.add_argument('--epochs', type=int, default=80, metavar='N',
                     help='number of epochs to train (default: 20)')
-parser.add_argument('--figuresize1', type=int, default=200, metavar='N',
+parser.add_argument('--figuresize1', type=int, default=96, metavar='N',
                     help='size1 that we use for the model')
-parser.add_argument('--figuresize2', type=int, default=160, metavar='N',
+parser.add_argument('--figuresize2', type=int, default=96, metavar='N',
                     help='size2 that we use for the model')
-parser.add_argument('--num_train', type=int, default=50, metavar='N',
+parser.add_argument('--num_train', type=int, default=2, metavar='N',
                     help='number of data for training')
-parser.add_argument('--num_dev', type=int, default=10, metavar='N',
+parser.add_argument('--num_dev', type=int, default=2, metavar='N',
                     help='number of data for evaluation')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
@@ -486,7 +523,7 @@ parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
                     help='number of channel for first convolution (default: 8)')
 parser.add_argument('--log-interval', type=int, default=1, metavar='N',
                     help='how many epoches between logging training status')
-parser.add_argument('--save-model', action='store_true', default=False,
+parser.add_argument('--save-model', action='store_true', default=True,
                     help='For Saving the current Model')
 parser.add_argument('--use-lovasz', action='store_true', default=False,
                     help='Whether use lovasz cross-entropy')
@@ -502,8 +539,10 @@ timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr + "model")
 
 
-train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train'), batch_size=args.batch_size, shuffle=True)
-dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev'), batch_size=args.test_batch_size, shuffle=False)
+train_loader = torch.utils.data.DataLoader(MyCustomDataset('Train'),
+                                           batch_size=args.batch_size, shuffle=True)
+dev_loader = torch.utils.data.DataLoader(MyCustomDataset('Dev'),
+                                         batch_size=args.test_batch_size, shuffle=False)
 
 model = UnetGenerator_3d(1, args.classes, args.channel_base)
 if(args.load_model is not None):
@@ -515,7 +554,7 @@ if(args.load_model is not None):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 model = model.to(device)
-summary(model, input_size=(1, args.slices_depth, args.figuresize1, args.figuresize2))
+#summary(model, input_size=(1, args.slices_depth, args.figuresize1, args.figuresize2))
 model.train()
 
 best_dice = 0.0
@@ -527,8 +566,12 @@ os.mkdir(timeStr + "model/jaccard")
 
 #dev_acc = get_accuracy(dev_loader, model)
 #dev_dice = get_dice_score(dev_loader, model)
-for epoch in range(args.epochs):
 
+model.load_state_dict(torch.load("15:0.8656639076789491.pt",map_location='cpu'))
+save_sample_result(dev_loader, model, -1, 1)
+exit()
+for epoch in range(args.epochs):
+    total_loss = 0.0
     for batch_idx, (data, label) in enumerate(train_loader):
 
         data, target = data.to(device), label.to(device)
@@ -543,14 +586,16 @@ for epoch in range(args.epochs):
         optim.zero_grad()
         loss.backward()
         optim.step()
+        total_loss += loss.item()
 
     if (epoch + 1) % args.log_interval == 0:
 
         print("Epoch : "+str(epoch))
         model.eval()
 
-        train_loss = get_loss(train_loader, model)
-        print(train_loss)
+        #train_loss = get_loss(train_loader, model)
+        #print(train_loss)
+        print(total_loss)
         train_acc = get_accuracy(train_loader, model)
         print("Training accuracy : " + str(train_acc))
         dev_dice = get_dice_score(dev_loader, model)[0]
@@ -567,8 +612,7 @@ for epoch in range(args.epochs):
                 print("Best model found")
                 torch.save(model.state_dict(), timeStr + "model/dice/" + str(epoch) + ":" + str(dev_dice) + ".pt")
                 best_dice = dev_dice
-
-        save_sample_result(dev_loader, model, epoch, 1)
+                save_sample_result(dev_loader, model, epoch, 10)
 
         model.train()
 

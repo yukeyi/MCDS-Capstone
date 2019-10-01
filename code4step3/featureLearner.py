@@ -6,7 +6,6 @@ import SimpleITK as sitk
 import random
 from collections import defaultdict
 import time
-import random
 import torch
 import math
 import torch.nn as nn
@@ -24,8 +23,7 @@ ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_chal
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 os.chdir(ROOT_DIR)
-num_points = 3
-margin = 0.05
+margin = 0.01
 epoch = 10
 cubic_size = 256
 
@@ -43,14 +41,8 @@ class Image:
     def parse_images(self):
         images = self.reg_dir.split("-")
         assert(len(images)==2)
-        #self.fixed_image = np.array(sitk.ReadImage(ROOT_DIR + "Brain2NIFI/" + images[0] + "/norm.nii"))
-        #self.fixed_aseg = sitk.ReadImage(ROOT_DIR + "Brain2NIFI/" + images[0] + "/aseg.nii")
         self.moving_image = sitk.ReadImage(ROOT_DIR + "Brain2NIFI/" + images[1] + "/norm.nii")
-        #self.moving_aseg = sitk.ReadImage(ROOT_DIR + "Brain2NIFI/" + images[1] + "/aseg.nii")
-        #self.image_list.append(self.fixed_image)
-        #self.image_list.append(self.moving_image)
-        #self.aseg_list.append(self.fixed_aseg)
-        #self.aseg_list.append(self.moving_aseg)
+
         
     def parse_registration(self):
         param0=sitk.ReadParameterFile("BrainParameterMaps/"+self.reg_dir+"/TransformParameters.0.txt")
@@ -102,17 +94,20 @@ def get_output_points(filename='outputpoints.txt'):
     return res
 
 
-def find_point(point, image):
+def find_points(point_list, image):
     # 1) write the point to file
     if os.path.exists('test.pts'):
         os.remove('test.pts')
     fr = open('test.pts', 'w')
-    fr.write('index'+'\n'+str(1)+'\n'+str(point[0])+' '+str(point[1])+' '+str(point[2]))
+    fr.write('index' + '\n' + str(len(point_list)))
+    for point in point_list:
+        fr.write('\n'+str(point[0])+' '+str(point[1])+' '+str(point[2]))
     fr.close()
 
     # find the corresponding point
     image.register_points()
     transformed_points = get_output_points()
+    print(transformed_points.shape)
     return transformed_points
 
 class BrainImageDataset(Dataset):
@@ -141,7 +136,7 @@ class featureLearner(nn.Module):
         print("\n------Initiating Network------\n")
 
         self.cnn1 = conv_block_3d(self.in_dim, self.out_dim, act_fn)
-        self.reset_params()
+        #self.reset_params()
 
     @staticmethod
     def weight_init(m):
@@ -185,24 +180,13 @@ def load_pairs():
             assert(len(images)==2)
             register_pairs[images[0]] = images[1]
 
-'''
-def generate_negative(fixed_point):
-    a = random.randint(0,256)
-    b = random.randint(0,256)
-    c = random.randint(0,256)
-    negative_point = np.array([a,b,c]).astype('int')
-    if (negative_point == fixed_point).all():
-        negative_point = generate_negative(fixed_point)
-    return negative_point
-'''
 
-def find_postive_negative_points(image, fixed_image_array, moving_image_array):
+def find_postive_negative_points(image, fixed_image_array, moving_image_array, Npoints):
 
     point_list = []
-    positive_point_list = []
     negative_point_list = []
 
-    for i in range(num_points):
+    for i in range(Npoints):
         while(1):
             x = random.randint(0,255)
             y = random.randint(0,255)
@@ -210,8 +194,6 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array):
             fixed_point = np.array([x,y,z]).astype('int')
             if(fixed_image_array[0][0][x][y][z] != 0):
                 break
-        positive_point = find_point(fixed_point,image)
-
         #generate negative point
         while(1):
             x = random.randint(0,255)
@@ -220,10 +202,10 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array):
             negative_point = np.array([x,y,z]).astype('int')
             if(moving_image_array[0][0][x][y][z] != 0):
                 break
-
         point_list.append(fixed_point)
-        positive_point_list.append(positive_point)
         negative_point_list.append(negative_point)
+
+    positive_point_list = find_points(point_list,image)
 
     return point_list, positive_point_list, negative_point_list
 
@@ -246,31 +228,31 @@ class CorrespondenceContrastiveLoss(nn.Module):
     def forward(self, fix_image_feature, moving_image_feature, fixed_points, positive_points, negative_points):
         loss = 0
         cnt = 0
+
+        '''
         for i in range(self.N):
             x, y, z = fixed_points[i]
-            a, b, c = positive_points[i][0]
+            a, b, c = positive_points[i]
             if(check_boundary(a,b,c,x,y,z) == 0):
                 continue
             label = 1 # positive pair
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            print("pos "+str(math.sqrt(distance)))
-            #print(fix_image_feature[0][:,x,y,z])
-            #print(moving_image_feature[0][:,a,b,c])
+            #print("pos "+str(math.sqrt(distance)))
             loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-math.sqrt(distance))) ** 2)
             cnt += 1
+        '''
         for i in range(self.N):
             x, y, z = fixed_points[i]
-            #print(negative_points[i])
             a, b, c = negative_points[i]
             if(check_boundary(a,b,c,x,y,z) == 0):
                 continue
             label = 0 # negative pair
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            print("neg " + str(math.sqrt(distance)))
-            #print(fix_image_feature[0][:,x,y,z])
-            #print(moving_image_feature[0][:,a,b,c])
-            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-math.sqrt(distance))) ** 2)
+            #print("neg " + str(math.sqrt(distance)))
+            #loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-math.sqrt(distance))) ** 2)
+            loss += (0.01-distance)
             cnt += 1
+
         loss /= (2*cnt)
         loss *= 10000
         return loss
@@ -280,35 +262,54 @@ class CorrespondenceContrastiveLoss(nn.Module):
 def train(args, model, device, loader, optimizer, epoch):
 
     model.train()
-    criterion = CorrespondenceContrastiveLoss(margin, num_points)
+    criterion = CorrespondenceContrastiveLoss(margin, args.batch)
     save_loss_filename = "loss"+str(epoch)+".npy"
     loss_history = []
 
     for batch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
         #print(fix, type(fix))
         #print(moving, type(moving))
-
         image = Image("".join(fix)+"-"+"".join(moving))
-        while(1):
-            point_list, positive_point_list, negative_point_list = find_postive_negative_points(image, fixed_image_array, moving_image_array)
+        point_list, positive_point_list, negative_point_list = \
+            find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
 
+        mini_batch = 0
+        losses = []
+        while(1):
             fixed_image_array, moving_image_array = fixed_image_array.to(device), moving_image_array.to(device)
             optimizer.zero_grad()
             fixed_image_feature = model(fixed_image_array.float())
             moving_image_feature = model(moving_image_array.float())
 
-            loss = criterion(fixed_image_feature, moving_image_feature, point_list, positive_point_list, negative_point_list)
+            start_pos = mini_batch * args.batch
+            end_pos = (mini_batch+1) * args.batch
+            loss = criterion(fixed_image_feature, moving_image_feature,
+                             point_list[start_pos:end_pos],
+                             positive_point_list[start_pos:end_pos],
+                             negative_point_list[start_pos:end_pos])
             loss.backward()
-
-            loss_history.append(loss.item())
-            if(len(loss_history) % 10 == 0):
-                np.save(save_loss_filename,np.array(loss_history))
-
             optimizer.step()
-            if batch_idx % args.log_interval == 0:
+            losses.append(loss.item())
+
+            mini_batch += 1
+            if(mini_batch*args.batch == args.Npoints):
+                mini_batch = 0
+                '''
+                randnum = random.randint(0, 100)
+                random.seed(randnum)
+                random.shuffle(point_list)
+                random.seed(randnum)
+                random.shuffle(positive_point_list)
+                random.seed(randnum)
+                random.shuffle(negative_point_list)
+                '''
                 print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx,
-                    100. * batch_idx / loader.__len__(), loss.item()))
+                    100. * batch_idx / loader.__len__(), np.array(losses).mean()))
+                losses = []
+            #loss_history.append(loss.item())
+            #if(len(loss_history) % 10 == 0):
+            #    np.save(save_loss_filename,np.array(loss_history))
 
 
 parser = argparse.ArgumentParser(description='PyTorch')
@@ -316,12 +317,16 @@ parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, load pre-trained model')
 parser.add_argument('--predict-model', type=str, default='', metavar='N',
                     help='If predict-model has a name, do not do training, just give result on dev and test set')
-parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
+parser.add_argument('--Npoints', type=int, default=200, metavar='LR',
+                    help='number of points for each image')
+parser.add_argument('--batch', type=int, default=200, metavar='LR',
+                    help='batch size of each update')
 parser.add_argument('--log_interval', type=int, default=1, metavar='LR',
                     help='log_interval')
 

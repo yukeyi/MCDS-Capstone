@@ -7,7 +7,6 @@ import random
 from collections import defaultdict
 import time
 import torch
-import math
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -229,7 +228,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
         loss = 0
         cnt = 0
 
-        '''
+
         for i in range(self.N):
             x, y, z = fixed_points[i]
             a, b, c = positive_points[i]
@@ -238,9 +237,9 @@ class CorrespondenceContrastiveLoss(nn.Module):
             label = 1 # positive pair
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
             #print("pos "+str(math.sqrt(distance)))
-            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-math.sqrt(distance))) ** 2)
+            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-torch.sqrt(distance))) ** 2)
             cnt += 1
-        '''
+
         for i in range(self.N):
             x, y, z = fixed_points[i]
             a, b, c = negative_points[i]
@@ -249,15 +248,15 @@ class CorrespondenceContrastiveLoss(nn.Module):
             label = 0 # negative pair
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
             #print("neg " + str(math.sqrt(distance)))
-            #loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-math.sqrt(distance))) ** 2)
-            loss += (0.01-distance)
+            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-torch.sqrt(distance))) ** 2)
+            #loss += ((0.01-torch.sqrt(distance))**2)
             cnt += 1
 
         loss /= (2*cnt)
         loss *= 10000
         return loss
 
-  
+
 
 def train(args, model, device, loader, optimizer, epoch):
 
@@ -294,7 +293,7 @@ def train(args, model, device, loader, optimizer, epoch):
             mini_batch += 1
             if(mini_batch*args.batch == args.Npoints):
                 mini_batch = 0
-                '''
+
                 randnum = random.randint(0, 100)
                 random.seed(randnum)
                 random.shuffle(point_list)
@@ -302,14 +301,15 @@ def train(args, model, device, loader, optimizer, epoch):
                 random.shuffle(positive_point_list)
                 random.seed(randnum)
                 random.shuffle(negative_point_list)
-                '''
+
+                loss_history.append(np.array(losses).mean())
+                if(len(loss_history) % 1 == 0):
+                    np.save(save_loss_filename,np.array(loss_history))
                 print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx,
                     100. * batch_idx / loader.__len__(), np.array(losses).mean()))
                 losses = []
-            #loss_history.append(loss.item())
-            #if(len(loss_history) % 10 == 0):
-            #    np.save(save_loss_filename,np.array(loss_history))
+
 
 
 parser = argparse.ArgumentParser(description='PyTorch')
@@ -317,13 +317,13 @@ parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, load pre-trained model')
 parser.add_argument('--predict-model', type=str, default='', metavar='N',
                     help='If predict-model has a name, do not do training, just give result on dev and test set')
-parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
-parser.add_argument('--Npoints', type=int, default=200, metavar='LR',
+parser.add_argument('--Npoints', type=int, default=10000, metavar='LR',
                     help='number of points for each image')
 parser.add_argument('--batch', type=int, default=200, metavar='LR',
                     help='batch size of each update')
@@ -341,7 +341,8 @@ print("Using device: "+str(device))
 #store all pairs of registration
 load_pairs()
 
-model = featureLearner(1,3).to(device)
+model = featureLearner(1,2).to(device)
+print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)
 
 train_dataset = BrainImageDataset(load_Directory(True))

@@ -22,9 +22,7 @@ ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_chal
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 os.chdir(ROOT_DIR)
-margin = 0.01
-epoch = 10
-cubic_size = 256
+
 
 register_pairs = {}
 
@@ -219,17 +217,17 @@ class CorrespondenceContrastiveLoss(nn.Module):
     Takes feature of pairs of points and a target label == 1 if positive pair and label == 0 otherwise
     """
 
-    def __init__(self, margin, N):
+    def __init__(self, margin, batch):
         super(CorrespondenceContrastiveLoss, self).__init__()
         self.margin = margin
-        self.N = N
+        self.batch = batch
 
     def forward(self, fix_image_feature, moving_image_feature, fixed_points, positive_points, negative_points):
         loss = 0
         cnt = 0
 
-
-        for i in range(self.N):
+        #print([len(fixed_points),len(positive_points),len(negative_points)])
+        for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = positive_points[i]
             if(check_boundary(a,b,c,x,y,z) == 0):
@@ -240,7 +238,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
             loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-torch.sqrt(distance))) ** 2)
             cnt += 1
 
-        for i in range(self.N):
+        for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = negative_points[i]
             if(check_boundary(a,b,c,x,y,z) == 0):
@@ -253,24 +251,36 @@ class CorrespondenceContrastiveLoss(nn.Module):
             cnt += 1
 
         loss /= (2*cnt)
-        loss *= 10000
+        loss *= 1000000
         return loss
 
 
 
-def train(args, model, device, loader, optimizer, epoch):
+def train(args, model, device, loader, optimizer):
 
     model.train()
-    criterion = CorrespondenceContrastiveLoss(margin, args.batch)
-    save_loss_filename = "loss"+str(epoch)+".npy"
+    criterion = CorrespondenceContrastiveLoss(args.margin, args.batch)
+    timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+    save_loss_filename = "loss_"+timeStr+".npy"
     loss_history = []
 
-    for batch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
+    for epoch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
         #print(fix, type(fix))
         #print(moving, type(moving))
-        image = Image("".join(fix)+"-"+"".join(moving))
-        point_list, positive_point_list, negative_point_list = \
-            find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
+        # if we only want to generate points
+        print(epoch_idx)
+        if(os.path.exists("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
+            points_data = np.load("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            point_list = points_data[0]
+            positive_point_list = points_data[1]
+            negative_point_list = points_data[2]
+        else:
+            image = Image("".join(fix)+"-"+"".join(moving))
+            print("".join(fix)+"-"+"".join(moving))
+            point_list, positive_point_list, negative_point_list = \
+                find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
+            points_data = np.array([point_list, positive_point_list, negative_point_list])
+            np.save("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy",points_data)
 
         mini_batch = 0
         losses = []
@@ -291,9 +301,18 @@ def train(args, model, device, loader, optimizer, epoch):
             losses.append(loss.item())
 
             mini_batch += 1
-            if(mini_batch*args.batch == args.Npoints):
-                mini_batch = 0
 
+            if(mini_batch % args.log_interval == 0):
+                print('Train Epoch: '+str(epoch_idx) + " mini_batch: "+str(mini_batch)+"  percentage: "+
+                      str(100. * epoch_idx / loader.__len__())+"% loss: "+
+                      str(np.array(losses[-1*args.log_interval:]).mean()))
+
+            if(mini_batch*args.batch == args.Npoints):
+
+                '''
+                # if only train one time, do not need to reset mini_batch and shuffle data
+                mini_batch = 0
+                losses = []
                 randnum = random.randint(0, 100)
                 random.seed(randnum)
                 random.shuffle(point_list)
@@ -301,14 +320,13 @@ def train(args, model, device, loader, optimizer, epoch):
                 random.shuffle(positive_point_list)
                 random.seed(randnum)
                 random.shuffle(negative_point_list)
+                '''
 
                 loss_history.append(np.array(losses).mean())
-                if(len(loss_history) % 1 == 0):
+                if(len(loss_history) % args.loss_save_interval == 0):
                     np.save(save_loss_filename,np.array(loss_history))
-                print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, batch_idx,
-                    100. * batch_idx / loader.__len__(), np.array(losses).mean()))
-                losses = []
+                break
+
 
 
 
@@ -321,14 +339,22 @@ parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
+parser.add_argument('--margin', type=float, default=0.01, metavar='LR',
+                    help='margin')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
 parser.add_argument('--Npoints', type=int, default=10000, metavar='LR',
                     help='number of points for each image')
 parser.add_argument('--batch', type=int, default=200, metavar='LR',
                     help='batch size of each update')
-parser.add_argument('--log_interval', type=int, default=1, metavar='LR',
+parser.add_argument('--log_interval', type=int, default=10, metavar='LR',
                     help='log_interval')
+parser.add_argument('--loss_save_interval', type=int, default=1, metavar='LR',
+                    help='loss_save_interval')
+parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
+                    help='model_save_interval')
+parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
+                    help='cubic_size')
 
 input_args = parser.parse_args()
 
@@ -348,7 +374,6 @@ optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), 
 train_dataset = BrainImageDataset(load_Directory(True))
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=1, shuffle=True)
 
-for epoch in range(1, input_args.epoch+1):
-    train(input_args, model, device, train_loader, optimizer, epoch)
-    model.save(epoch)
+train(input_args, model, device, train_loader, optimizer)
+#model.save(0)
 

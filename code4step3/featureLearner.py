@@ -21,6 +21,7 @@ from pynvml import *
 from torchsummary import summary
 
 
+# following three functions are used for checking gpu usage
 def getGpuUtilization(handle):
     try:
         util = nvmlDeviceGetUtilizationRates(handle)
@@ -32,7 +33,6 @@ def getGpuUtilization(handle):
 
 def getMB(BSize):
     return BSize / (1024 * 1024)
-
 
 def get_gpu_info(flag):
     print(flag)

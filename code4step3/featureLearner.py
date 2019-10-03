@@ -15,6 +15,44 @@ from scipy import spatial
 import argparse
 import pandas as pd
 import pickle as pkl
+import json
+import sys
+from pynvml import *
+from torchsummary import summary
+
+
+def getGpuUtilization(handle):
+    try:
+        util = nvmlDeviceGetUtilizationRates(handle)
+        gpu_util = int(util.gpu)
+    except NVMLError as err:
+        error = handleError(err)
+        gpu_util = error
+    return gpu_util
+
+def getMB(BSize):
+    return BSize / (1024 * 1024)
+
+
+def get_gpu_info(flag):
+    print(flag)
+    nvmlInit()
+    deviceCount = nvmlDeviceGetCount()
+    data = []
+    for i in range(deviceCount):
+        handle = nvmlDeviceGetHandleByIndex(i)
+        meminfo = nvmlDeviceGetMemoryInfo(handle)
+        gpu_util = getGpuUtilization(handle)
+        one = {"gpuUtil": gpu_util}
+        one["gpuId"] = i
+        one["memTotal"] = getMB(meminfo.total)
+        one["memUsed"] = getMB(meminfo.used)
+        one["memFree"] = getMB(meminfo.total)
+        one["temperature"] = nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU)
+        data.append(one)
+    data = {"gpuCount": deviceCount, "util": "Mb", "detail": data}
+    print(json.dumps(data))
+
 
 torch.backends.cudnn.enabled = False
 
@@ -61,18 +99,23 @@ class Image:
         self.transformixImageFilter.Execute()
 
 def get_data(path):
-	heart = sitk.ReadImage(path)
-	heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
-	return heartArray
+    heart = sitk.ReadImage(path)
+    heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
+    return heartArray
 
-def conv_block_3d(in_dim,out_dim,act_fn):
-    model = nn.Sequential(
-        nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=1),
-        act_fn,
-        nn.Conv3d(out_dim,out_dim, kernel_size=3, stride=1, padding=1),
-    )
+def conv_block_3d(in_dim,out_dim,act_fn,is_final=False):
+    if(is_final):
+        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=1)
+    else:
+        model = nn.Sequential(
+            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=1),
+            act_fn,
+        )
     return model
 
+def maxpool_3d():
+    pool = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)
+    return pool
 
 def get_output_points(filename='outputpoints.txt'):
     fr = open(filename, 'r')
@@ -123,23 +166,33 @@ class BrainImageDataset(Dataset):
         return len(self.data)
 
 class featureLearner(nn.Module):
-    def __init__(self, in_dim, out_dim):
+    def __init__(self):
         super(featureLearner, self).__init__()
 
-        self.in_dim = in_dim
-        self.out_dim = out_dim
-        act_fn = nn.LeakyReLU()
+        self.in_dim = 1
+        self.mid1_dim = 8
+        self.mid2_dim = 16
+        self.mid3_dim = 32
+        self.out_dim = 32
+        #act_fn = nn.LeakyReLU()
+        act_fn = nn.ReLU()
 
         print("\n------Initiating Network------\n")
 
-        self.cnn1 = conv_block_3d(self.in_dim, self.out_dim, act_fn)
-        #self.reset_params()
+        self.cnn1 = conv_block_3d(self.in_dim, self.mid1_dim, act_fn)
+        self.pool1 = maxpool_3d()
+        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn)
+        self.pool2 = maxpool_3d()
+        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn)
+        self.pool3 = maxpool_3d()
+        self.cnn4 = conv_block_3d(self.mid3_dim, self.out_dim, act_fn, True)
+        self.reset_params()
 
     @staticmethod
     def weight_init(m):
-        if (isinstance(m, nn.Conv3d) or isinstance(m, nn.ConvTranspose3d)):
+        if (isinstance(m, nn.Conv3d)):
             # todo: change it to kaiming initialization
-            nn.init.xavier_normal(m.weight)
+            nn.init.kaiming_normal(m.weight)
             nn.init.constant(m.bias, 0)
 
     def reset_params(self):
@@ -147,11 +200,32 @@ class featureLearner(nn.Module):
             self.weight_init(m)
 
     def forward(self, x):
-        out = self.cnn1(x)
+        #get_gpu_info(2)
+        x = self.cnn1(x)
+        #get_gpu_info(3)
+        x = self.pool1(x)
+        #get_gpu_info(4)
+        x = self.cnn2(x)
+        #get_gpu_info(5)
+        x = self.pool2(x)
+        #get_gpu_info(6)
+        x = self.cnn3(x)
+        #get_gpu_info(7)
+        x = self.pool3(x)
+        #get_gpu_info(8)
+        out = self.cnn4(x)
+        #get_gpu_info(9)
         return out
+
     def save(self,epoch):
         torch.save(self.state_dict(),"featureLearner"+'_'+str(epoch)+'.pt')
 
+
+def point_redirection(x, y, z):
+    x = x//8
+    y = y//8
+    z = z//8
+    return x, y, z
 
 def load_Directory(is_train):
     #read file with train data path
@@ -227,26 +301,30 @@ class CorrespondenceContrastiveLoss(nn.Module):
         cnt = 0
 
         #print([len(fixed_points),len(positive_points),len(negative_points)])
+        # positive pairs
         for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = positive_points[i]
             if(check_boundary(a,b,c,x,y,z) == 0):
                 continue
-            label = 1 # positive pair
+            x, y, z = point_redirection(x, y, z)
+            a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
             #print("pos "+str(math.sqrt(distance)))
-            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-torch.sqrt(distance))) ** 2)
+            loss += (distance ** 2)
             cnt += 1
 
+        # negative pairs
         for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = negative_points[i]
             if(check_boundary(a,b,c,x,y,z) == 0):
                 continue
-            label = 0 # negative pair
+            x, y, z = point_redirection(x, y, z)
+            a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
             #print("neg " + str(math.sqrt(distance)))
-            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-torch.sqrt(distance))) ** 2)
+            loss += ((max(0, self.margin-torch.sqrt(distance))) ** 2)
             #loss += ((0.01-torch.sqrt(distance))**2)
             cnt += 1
 
@@ -287,7 +365,11 @@ def train(args, model, device, loader, optimizer):
         while(1):
             fixed_image_array, moving_image_array = fixed_image_array.to(device), moving_image_array.to(device)
             optimizer.zero_grad()
+            #get_gpu_info(1)
+            #print(sys.getsizeof(fixed_image_array)/(8*1024*1024*1024))
             fixed_image_feature = model(fixed_image_array.float())
+
+            #print(sys.getsizeof(fixed_image_feature)/(8*1024*1024*1024))
             moving_image_feature = model(moving_image_array.float())
 
             start_pos = mini_batch * args.batch
@@ -367,7 +449,8 @@ print("Using device: "+str(device))
 #store all pairs of registration
 load_pairs()
 
-model = featureLearner(1,2).to(device)
+model = featureLearner().to(device)
+summary(model, input_size=(1, 256,256,256))
 print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)
 

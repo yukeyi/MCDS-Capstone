@@ -211,7 +211,8 @@ def get_loss(dl, model):
 
             logsoftmax_output_z = model(data)
             loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
-            loss = loss.float().mean()
+            #loss = loss.float().mean()
+            loss = (loss.float() * (args.augmentation * (target > 0) + 1).float()).mean()
             total_loss += loss.item()
 
     model.train()

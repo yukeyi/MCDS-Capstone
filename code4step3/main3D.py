@@ -449,7 +449,7 @@ parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
-parser.add_argument('--augmentation', type=float, default=0.0, metavar='LR',
+parser.add_argument('--augmentation', type=float, default=10.0, metavar='LR',
                     help='weight for lebeled object')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
@@ -526,8 +526,8 @@ for epoch in range(args.epochs):
             else:
                 logsoftmax_output_z = model(data)
                 loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
-                loss = loss.float().mean()
-                #loss = (loss.float()*(args.augmentation*target+1)).mean()
+                #loss = loss.float().mean()
+                loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
             optim.zero_grad()
             loss.backward()
             optim.step()

@@ -11,6 +11,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
 from torchsummary import summary
+from tensorboardX import SummaryWriter
+
 try:
     from itertools import  ifilterfalse
 except ImportError: # py3k
@@ -151,7 +153,10 @@ def load_Directory(is_train):
 
     dirnames = file.readlines()
     data_directory = [x.strip() for x in dirnames]
-
+    if is_train:
+        data_directory = data_directory[:args.num_train]
+    else:
+        data_directory = data_directory[:args.num_dev]
     return data_directory
 
 class BrainImageDataset(Dataset):
@@ -173,9 +178,10 @@ class BrainImageDataset(Dataset):
         label = np.zeros(target.shape)
         for i in range(len(label_list)):
             label += ((target == label_list[i])*i)
+        label = label[0]
         #end_time = time.time()
         #print(mid_time-start_time)
-        #print(end_time-mid_time)
+        #print(end_time-start_time)
         '''
         # for get label's index
         label_list = []
@@ -185,8 +191,8 @@ class BrainImageDataset(Dataset):
         print(len(label_list))
         print(label_list)
         '''
-        image = image[:, :16, :16, :16]
-        label = label[0, :16, :16, :16]
+        #image = image[:, :256, :32, :32]
+        #label = label[:256, :32, :32]
         return (image, label)
 
     def __len__(self):
@@ -194,25 +200,23 @@ class BrainImageDataset(Dataset):
 
 
 def get_loss(dl, model):
-    loss = 0
-    if (args.use_lovasz):
-        for X, y in dl:
-            X, y = Variable(X).to(device), Variable(y).to(device)
-            #X, y = Variable(X), Variable(y)
-            softmax_output_z = model(X)
-            vprobas, vlabels = flatten_probas(softmax_output_z, y.long())
-            loss += lovasz_softmax_flat(vprobas, vlabels).item()
-        loss = loss / len(dl)
-        return loss
-    else:
-        for X, y in dl:
-            #X, y = Variable(X).cuda(), Variable(y).cuda()
-            X, y = Variable(X).to(device), Variable(y).to(device)
-            output = model(X)
-            loss += nn.NLLLoss(reduce=False)(output, y.long())
-            loss = (loss.double() * (args.augmentation * y.double() + 1)).mean().item()
-        loss = loss / len(dl)
-        return loss
+
+    model.eval()
+    total_loss = 0.0
+    for batch_idx, (whole_data, whole_label) in enumerate(dl):
+        slice_depth = 256 // args.shard
+        for shard in range(args.shard):
+            data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
+                           whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
+
+            logsoftmax_output_z = model(data)
+            loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
+            loss = loss.float().mean()
+            total_loss += loss.item()
+
+    model.train()
+
+    return total_loss / len(dl)
 
 
 '''
@@ -341,29 +345,34 @@ def get_accuracy(dl, model):
 
     total_num = 0
     correct_num = 0
-
-    for X, y in dl:
-        X = Variable(X).to(device)#.cuda()
-        output = model(X).cpu()
-        #print(output.shape)
-        #print(y.shape)
-        #print(y.type())
-        #print(np.argmax(output.data.numpy()).dtype)
-        correct_num += (np.argmax(output.data.numpy(),axis=1) == y.data.numpy().astype("int64")).sum().item()
+    slice_depth = 256 // args.shard
+    for whole_data, y in dl:
+        predicted = np.zeros(y.shape)
+        for shard in range(args.shard):
+            X = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device)
+            X = Variable(X).to(device)
+            output = model(X).cpu()
+            output = np.argmax(output.data.numpy(), axis=1)
+            predicted[:, shard * slice_depth:(shard + 1) * slice_depth] = output
+        correct_num += (predicted == y.data.numpy().astype("int64")).sum().item()
         total_num += y.shape[0]*y.shape[1]*y.shape[2]*y.shape[3]
     return correct_num/total_num
 
 def get_dice_score(dl, model):
 
     score = []
-
-    for X, y in dl:
-        X = Variable(X).to(device)
-        output = model(X).cpu()
-        predicted = np.argmax(output.data.numpy(),axis=1)
+    slice_depth = 256 // args.shard
+    for whole_data, y in dl:
+        predicted = np.zeros(y.shape)
+        for shard in range(args.shard):
+            X = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device)
+            X = Variable(X).to(device)
+            output = model(X).cpu()
+            output = np.argmax(output.data.numpy(),axis=1)
+            predicted[:,shard*slice_depth:(shard+1)*slice_depth] = output
         #predicted.resize((predicted.shape[0]*predicted.shape[1],predicted.shape[2],predicted.shape[3]))
 
-        score.append(binary_dice_score(np.array(y),predicted.astype("int64"), list(np.arange(1,46))))
+        score.append(binary_dice_score(np.array(y),predicted.astype("int64"), list(np.arange(0,46))))
 
     return np.mean(score)
 
@@ -430,17 +439,13 @@ parser.add_argument('--classes', type=int, default=46, metavar='N',
                     help='total classes of task')
 parser.add_argument('--test-batch-size', type=int, default=1, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--slices-depth', type=int, default=8, metavar='N',
-                    help='depth of each slides (default: 8)')
-parser.add_argument('--epochs', type=int, default=80, metavar='N',
+parser.add_argument('--shard', type=int, default=4, metavar='N',
+                    help='split how many shards for one image')
+parser.add_argument('--epochs', type=int, default=10, metavar='N',
                     help='number of epochs to train (default: 20)')
-parser.add_argument('--figuresize1', type=int, default=96, metavar='N',
-                    help='size1 that we use for the model')
-parser.add_argument('--figuresize2', type=int, default=96, metavar='N',
-                    help='size2 that we use for the model')
-parser.add_argument('--num_train', type=int, default=2, metavar='N',
+parser.add_argument('--num_train', type=int, default=50, metavar='N',
                     help='number of data for training')
-parser.add_argument('--num_dev', type=int, default=2, metavar='N',
+parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
@@ -448,7 +453,7 @@ parser.add_argument('--augmentation', type=float, default=0.0, metavar='LR',
                     help='weight for lebeled object')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
-parser.add_argument('--channel-base', type=int, default=2, metavar='CB',
+parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
                     help='number of channel for first convolution (default: 8)')
 parser.add_argument('--log-interval', type=int, default=1, metavar='N',
                     help='how many epoches between logging training status')
@@ -462,14 +467,15 @@ parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
-#ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
-ROOT_DIR = "/Users/yukeyi/Desktop/"
+ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
+#ROOT_DIR = "/Users/yukeyi/Desktop/"
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 os.chdir(ROOT_DIR)
 label_map, label_list = get_label_map()
 
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+writer = SummaryWriter(timeStr+'/log')
 #os.mkdir(timeStr + "model")
 
 
@@ -488,7 +494,6 @@ if(args.load_model is not None):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 model = model.to(device)
-#summary(model, input_size=(1, args.slices_depth, args.figuresize1, args.figuresize2))
 
 best_dice = 0.0
 best_jaccard = 0
@@ -505,47 +510,57 @@ optim = torch.optim.Adam(model.parameters(),lr=args.lr)
 
 model.train()
 for epoch in range(args.epochs):
+    #get_dice_score(dev_loader, model)
+    #get_accuracy(dev_loader, model)
     total_loss = 0.0
-    for batch_idx, (data, label) in enumerate(train_loader):
-
-        data, target = data.to(device), label.to(device)
-        if (args.use_lovasz):
-            softmax_output_z = model(data)
-            vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
-            loss = lovasz_softmax_flat(vprobas, vlabels)
-        else:
-            logsoftmax_output_z = model(data)
-            loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
-            loss = loss.float().mean()
-            #loss = (loss.float()*(args.augmentation*target+1)).mean()
-        optim.zero_grad()
-        loss.backward()
-        optim.step()
-        total_loss += loss.item()
+    for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
+        image_loss = 0.0
+        slice_depth = 256 // args.shard
+        for shard in range(args.shard):
+            data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
+                           whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
+            if (args.use_lovasz):
+                softmax_output_z = model(data)
+                vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
+                loss = lovasz_softmax_flat(vprobas, vlabels)
+            else:
+                logsoftmax_output_z = model(data)
+                loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
+                loss = loss.float().mean()
+                #loss = (loss.float()*(args.augmentation*target+1)).mean()
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+            total_loss += loss.item()
+            image_loss += loss.item()
+        print("Batch : "+str(batch_idx) + " loss : "+str(image_loss))
 
     if (epoch + 1) % args.log_interval == 0:
 
         print("Epoch : "+str(epoch))
         model.eval()
-        #train_loss = get_loss(train_loader, model)
-        #print(train_loss)
-        print(total_loss)
-        train_acc = get_accuracy(train_loader, model)
-        print("Training accuracy : " + str(train_acc))
+        train_loss = total_loss / train_loader.__len__()
+        print("total loss : "+str(train_loss))
+        dev_loss = get_loss(dev_loader, model)
+        print("dev loss : "+str(dev_loss))
+        writer.add_scalar('Train/Loss', train_loss, epoch+1)
+        writer.add_scalar('Dev/Loss', dev_loss, epoch+1)
+        #train_acc = get_accuracy(train_loader, model)
+        #print("Training accuracy : " + str(train_acc))
         dev_dice = get_dice_score(dev_loader, model)
         print("Dev dice score : " + str(dev_dice))
-        dev_acc = get_accuracy(dev_loader, model)
-        print("Dev accuracy : " + str(dev_acc))
-        #if(train_acc < 0.01):
-        #    print("Bad initialization")
-        #    exit(0)
+        writer.add_scalar('Dev/Dice', dev_dice, epoch + 1)
+        #dev_acc = get_accuracy(dev_loader, model)
+        #print("Dev accuracy : " + str(dev_acc))
+
+        '''
         if(args.save_model):
             if(dev_dice > best_dice):
                 print("Best model found")
                 torch.save(model.state_dict(), timeStr + "model/dice/" + str(epoch) + ":" + str(dev_dice) + ".pt")
                 best_dice = dev_dice
                 #save_sample_result(dev_loader, model, epoch, 10)
-
+        '''
         model.train()
 
 print("Done")

@@ -6,6 +6,7 @@ import shutil
 import argparse
 import numpy as np
 import torch
+import sys
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -166,9 +167,11 @@ class BrainImageDataset(Dataset):
     def __getitem__(self, index):
 
         name = self.data[index]
-        image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32")
-        target = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/aseg.nii")*256
-
+        try:
+            image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32")
+            target = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/aseg.nii")*256
+        except:
+            return (None, None)
         # two ways to convert from real number value to label
         #start_time = time.time()
         #temp = target.reshape(-1)
@@ -444,7 +447,7 @@ parser.add_argument('--shard', type=int, default=4, metavar='N',
                     help='split how many shards for one image')
 parser.add_argument('--epochs', type=int, default=10, metavar='N',
                     help='number of epochs to train (default: 20)')
-parser.add_argument('--num_train', type=int, default=50, metavar='N',
+parser.add_argument('--num_train', type=int, default=3000, metavar='N',
                     help='number of data for training')
 parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
@@ -456,7 +459,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
                     help='number of channel for first convolution (default: 8)')
-parser.add_argument('--log-interval', type=int, default=1, metavar='N',
+parser.add_argument('--log-interval', type=int, default=50, metavar='N',
                     help='how many epoches between logging training status')
 parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
@@ -464,7 +467,7 @@ parser.add_argument('--use-lovasz', action='store_true', default=False,
                     help='Whether use lovasz cross-entropy')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default=None, metavar='N',
+parser.add_argument('--load-model', type=str, default='/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/2019-10-09-10-18-15/model350.pt', metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
@@ -476,9 +479,9 @@ os.chdir(ROOT_DIR)
 label_map, label_list = get_label_map()
 
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+os.mkdir(timeStr)
 writer = SummaryWriter(timeStr+'/log')
-#os.mkdir(timeStr + "model")
-
+save_model_filename = timeStr + "/model"
 
 train_dataset = BrainImageDataset(load_Directory(True))
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size, shuffle=True)
@@ -487,11 +490,8 @@ dev_loader = torch.utils.data.DataLoader(dev_dataset,batch_size=args.test_batch_
 
 model = UnetGenerator_3d(1, args.classes, args.channel_base)
 if(args.load_model is not None):
-    exist_dict = torch.load(args.load_model)
-    total_dict = model.state_dict()
-    for k, v in exist_dict.items():
-        total_dict[k] = v
-    model.load_state_dict(total_dict)
+    print("Load model : "+args.load_model)
+    model = torch.load(args.load_model)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 model = model.to(device)
@@ -515,53 +515,55 @@ for epoch in range(args.epochs):
     #get_accuracy(dev_loader, model)
     total_loss = 0.0
     for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
-        image_loss = 0.0
-        slice_depth = 256 // args.shard
-        for shard in range(args.shard):
-            data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
-                           whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
-            if (args.use_lovasz):
-                softmax_output_z = model(data)
-                vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
-                loss = lovasz_softmax_flat(vprobas, vlabels)
-            else:
-                logsoftmax_output_z = model(data)
-                loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
-                #loss = loss.float().mean()
-                loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
-            total_loss += loss.item()
-            image_loss += loss.item()
-        print("Batch : "+str(batch_idx) + " loss : "+str(image_loss))
+        if(whole_data is not None):
+            image_loss = 0.0
+            slice_depth = 256 // args.shard
+            for shard in range(args.shard):
+                data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
+                               whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
+                if (args.use_lovasz):
+                    softmax_output_z = model(data)
+                    vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
+                    loss = lovasz_softmax_flat(vprobas, vlabels)
+                else:
+                    logsoftmax_output_z = model(data)
+                    loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
+                    #loss = loss.float().mean()
+                    loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
+                optim.zero_grad()
+                loss.backward()
+                optim.step()
+                total_loss += loss.item()
+                image_loss += loss.item()
+            print("Batch : "+str(batch_idx) + " loss : "+str(image_loss))
 
-    if (epoch + 1) % args.log_interval == 0:
+        if (batch_idx + 1) % args.log_interval == 0:
 
-        print("Epoch : "+str(epoch))
-        model.eval()
-        train_loss = total_loss / train_loader.__len__()
-        print("total loss : "+str(train_loss))
-        dev_loss = get_loss(dev_loader, model)
-        print("dev loss : "+str(dev_loss))
-        writer.add_scalar('Train/Loss', train_loss, epoch+1)
-        writer.add_scalar('Dev/Loss', dev_loss, epoch+1)
-        #train_acc = get_accuracy(train_loader, model)
-        #print("Training accuracy : " + str(train_acc))
-        dev_dice = get_dice_score(dev_loader, model)
-        print("Dev dice score : " + str(dev_dice))
-        writer.add_scalar('Dev/Dice', dev_dice, epoch + 1)
-        #dev_acc = get_accuracy(dev_loader, model)
-        #print("Dev accuracy : " + str(dev_acc))
+            print("Epoch : "+str(epoch)+" Batch: "+str(batch_idx))
+            model.eval()
+            train_loss = total_loss / train_loader.__len__()
+            print("total loss : "+str(train_loss))
+            dev_loss = get_loss(dev_loader, model)
+            print("dev loss : "+str(dev_loss))
+            writer.add_scalar('Train/Loss', train_loss, epoch*args.num_train+batch_idx+1)
+            writer.add_scalar('Dev/Loss', dev_loss, epoch*args.num_train+batch_idx+1)
+            #train_acc = get_accuracy(train_loader, model)
+            #print("Training accuracy : " + str(train_acc))
+            dev_dice = get_dice_score(dev_loader, model)
+            print("Dev dice score : " + str(dev_dice))
+            writer.add_scalar('Dev/Dice', dev_dice, epoch*args.num_train+batch_idx+1)
+            torch.save(model, save_model_filename + str(epoch*args.num_train+batch_idx+1) + '.pt')
+            #dev_acc = get_accuracy(dev_loader, model)
+            #print("Dev accuracy : " + str(dev_acc))
 
-        '''
-        if(args.save_model):
-            if(dev_dice > best_dice):
-                print("Best model found")
-                torch.save(model.state_dict(), timeStr + "model/dice/" + str(epoch) + ":" + str(dev_dice) + ".pt")
-                best_dice = dev_dice
-                #save_sample_result(dev_loader, model, epoch, 10)
-        '''
-        model.train()
+            '''
+            if(args.save_model):
+                if(dev_dice > best_dice):
+                    print("Best model found")
+                    torch.save(model.state_dict(), timeStr + "model/dice/" + str(epoch) + ":" + str(dev_dice) + ".pt")
+                    best_dice = dev_dice
+                    #save_sample_result(dev_loader, model, epoch, 10)
+            '''
+            model.train()
 
 print("Done")

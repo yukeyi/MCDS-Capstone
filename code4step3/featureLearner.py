@@ -339,7 +339,9 @@ def train(args, model, device, loader, optimizer):
     model.train()
     criterion = CorrespondenceContrastiveLoss(args.margin, args.batch)
     timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-    save_loss_filename = "loss_"+timeStr+".npy"
+    os.mkdir(timeStr)
+    save_loss_filename = timeStr+"/loss.npy"
+    save_model_filename = timeStr+"/model"
     loss_history = []
 
     for epoch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
@@ -407,6 +409,8 @@ def train(args, model, device, loader, optimizer):
                 loss_history.append(np.array(losses).mean())
                 if(len(loss_history) % args.loss_save_interval == 0):
                     np.save(save_loss_filename,np.array(loss_history))
+                if(len(loss_history) % args.model_save_interval == 0):
+                    torch.save(model, save_model_filename+str(epoch_idx)+'.pt')
                 break
 
 

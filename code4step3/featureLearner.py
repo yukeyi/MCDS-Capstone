@@ -213,9 +213,9 @@ class featureLearner(nn.Module):
 
 def point_redirection(x, y, z):
     # Todo: fix this
-    x = (x-crop_index[0]) % crop_half_size[0]
-    y = (y-crop_index[1]) % crop_half_size[1]
-    z = (z-crop_index[2]) % crop_half_size[2]
+    x = x % crop_half_size[0]
+    y = y % crop_half_size[1]
+    z = z % crop_half_size[2]
     return x, y, z
 
 def load_Directory(is_train):
@@ -253,17 +253,17 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
             for z_shard in range(2):
                 for i in range(Npoints*2//8):
                     while(1):
-                        x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0])+crop_half_size[0]*x_shard
-                        y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1])+crop_half_size[1]*y_shard
-                        z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2])+crop_half_size[2]*z_shard
+                        x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0]-1)+crop_half_size[0]*x_shard
+                        y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
+                        z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
                         fixed_point = np.array([x,y,z]).astype('int')
                         if(fixed_image_array[0][0][x][y][z] != 0):
                             break
                     #generate negative point
                     while(1):
-                        x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0])+crop_half_size[0]*x_shard
-                        y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1])+crop_half_size[1]*y_shard
-                        z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2])+crop_half_size[2]*z_shard
+                        x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0]-1)+crop_half_size[0]*x_shard
+                        y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
+                        z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
                         negative_point = np.array([x,y,z]).astype('int')
                         if(moving_image_array[0][0][x][y][z] != 0):
                             break
@@ -321,15 +321,15 @@ class CorrespondenceContrastiveLoss(nn.Module):
         loss = 0
         cnt = 0
 
-        #print([len(fixed_points),len(positive_points),len(negative_points)])
         # positive pairs
+
         for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = positive_points[i]
             x, y, z = point_redirection(x, y, z)
             a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            print(distance)
+            #print(torch.sqrt(distance))
             #print("pos "+str(math.sqrt(distance)))
             loss += (distance ** 2)
             cnt += 1
@@ -341,14 +341,23 @@ class CorrespondenceContrastiveLoss(nn.Module):
             x, y, z = point_redirection(x, y, z)
             a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            #print("neg " + str(math.sqrt(distance)))
-            print(distance)
+            #print(torch.sqrt(distance))
+
+            '''
+            if(torch.sqrt(distance).item() == 0.0):
+                print("fuck")
+                print(fix_image_feature[0][:,x,y,z])
+                print(sdf[0][0][x][y][z])
+                #continue
+            '''
             loss += ((max(0, self.margin-torch.sqrt(distance))) ** 2)
             #loss += ((0.01-torch.sqrt(distance))**2)
             cnt += 1
 
         loss /= (2*cnt)
         loss *= 1000000
+        print(loss)
+        #exit()
         return loss
 
 crop_index = [25, 225, 28, 204, 48, 208]
@@ -420,6 +429,7 @@ def train(args, model, device, loader, optimizer):
         continue
         '''
 
+
         if(os.path.exists("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
             points_data = np.load("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
             point_list = np.array(points_data[0])
@@ -431,18 +441,37 @@ def train(args, model, device, loader, optimizer):
             point_list, positive_point_list, negative_point_list = \
                 find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
             points_data = np.array([point_list, positive_point_list, negative_point_list])
-            np.save("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy",points_data)
+            np.save("points_data/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
+            point_list = np.array(point_list)
+            positive_point_list = np.array(positive_point_list)
+            negative_point_list = np.array(negative_point_list)
 
-        #continue
+        #for item in point_list[0]:
+        #    assert(fixed_image_array[0][0][item[0]][item[1]][item[2]].item() != 0.0)
+
+        continue
 
         # crop image and triple points here
         fixed_image_array = fixed_image_array[:, :, crop_index[0]:crop_index[1], crop_index[2]:crop_index[3],
                             crop_index[4]:crop_index[5]]
         moving_image_array = moving_image_array[:, :, crop_index[0]:crop_index[1], crop_index[2]:crop_index[3],
                              crop_index[4]:crop_index[5]]
-        point_list -= crop_index[0]
-        positive_point_list -= crop_index[2]
-        negative_point_list -= crop_index[4]
+
+        point_list[:, :, 0] -= crop_index[0]
+        point_list[:, :, 1] -= crop_index[2]
+        point_list[:, :, 2] -= crop_index[4]
+        positive_point_list[:, :, 0] -= crop_index[0]
+        positive_point_list[:, :, 1] -= crop_index[2]
+        positive_point_list[:, :, 2] -= crop_index[4]
+        negative_point_list[:, :, 0] -= crop_index[0]
+        negative_point_list[:, :, 1] -= crop_index[2]
+        negative_point_list[:, :, 2] -= crop_index[4]
+
+        #for item in point_list[0]:
+        #    assert (fixed_image_array[0][0][item[0]][item[1]][item[2]].item() != 0.0)
+        #    assert (item[0] < crop_half_size[0])
+        #    assert (item[1] < crop_half_size[1])
+        #    assert (item[2] < crop_half_size[2])
 
         losses = []
 
@@ -508,7 +537,7 @@ parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=0.01, metavar='LR',
+parser.add_argument('--margin', type=float, default=0.5, metavar='LR',
                     help='margin')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')

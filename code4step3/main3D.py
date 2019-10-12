@@ -467,7 +467,7 @@ parser.add_argument('--use-lovasz', action='store_true', default=False,
                     help='Whether use lovasz cross-entropy')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default='/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/2019-10-09-10-18-15/model350.pt', metavar='N',
+parser.add_argument('--load-model', type=str, default='/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/2019-10-11-10-56-48/model200.pt', metavar='N',
                     help='If load-model has a name, use pretrained model')
 args = parser.parse_args()
 
@@ -515,27 +515,30 @@ for epoch in range(args.epochs):
     #get_accuracy(dev_loader, model)
     total_loss = 0.0
     for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
-        if (len(whole_data) > 10):
-            image_loss = 0.0
-            slice_depth = 256 // args.shard
-            for shard in range(args.shard):
-                data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
-                               whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
-                if (args.use_lovasz):
-                    softmax_output_z = model(data)
-                    vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
-                    loss = lovasz_softmax_flat(vprobas, vlabels)
-                else:
-                    logsoftmax_output_z = model(data)
-                    loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
-                    #loss = loss.float().mean()
-                    loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
-                optim.zero_grad()
-                loss.backward()
-                optim.step()
-                total_loss += loss.item()
-                image_loss += loss.item()
-            print("Batch : "+str(batch_idx) + " loss : "+str(image_loss))
+        if (len(whole_data) > 0):
+            try:
+                image_loss = 0.0
+                slice_depth = 256 // args.shard
+                for shard in range(args.shard):
+                    data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
+                                   whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
+                    if (args.use_lovasz):
+                        softmax_output_z = model(data)
+                        vprobas, vlabels = flatten_probas(softmax_output_z, target.long())
+                        loss = lovasz_softmax_flat(vprobas, vlabels)
+                    else:
+                        logsoftmax_output_z = model(data)
+                        loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
+                        #loss = loss.float().mean()
+                        loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
+                    optim.zero_grad()
+                    loss.backward()
+                    optim.step()
+                    total_loss += loss.item()
+                    image_loss += loss.item()
+                print("Batch : "+str(batch_idx) + " loss : "+str(image_loss))
+            except:
+                print("except occurs")
 
         if (batch_idx + 1) % args.log_interval == 0:
 

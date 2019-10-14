@@ -105,10 +105,10 @@ def get_data(path):
 
 def conv_block_3d(in_dim,out_dim,act_fn,dilation,is_final=False):
     if(is_final):
-        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=1, dilation=dilation)
+        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
     else:
         model = nn.Sequential(
-            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=1, dilation=dilation),
+            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation),
             act_fn,
         )
     return model
@@ -169,19 +169,19 @@ class featureLearner(nn.Module):
         super(featureLearner, self).__init__()
 
         self.in_dim = 1
-        self.mid1_dim = 8
-        self.mid2_dim = 16
-        self.mid3_dim = 32
-        self.out_dim = 32
+        self.mid1_dim = 32
+        self.mid2_dim = 32
+        self.mid3_dim = 16
+        self.out_dim = 8
         #act_fn = nn.LeakyReLU()
         act_fn = nn.ReLU()
 
         print("\n------Initiating Network------\n")
 
         self.cnn1 = conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
-        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 1)
-        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 1)
-        self.cnn4 = conv_block_3d(self.mid3_dim, self.out_dim, act_fn, 1, True)
+        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 2)
+        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 4)
+        self.cnn4 = conv_block_3d(self.mid3_dim, self.out_dim, act_fn, 8, True)
         self.reset_params()
 
     @staticmethod
@@ -271,7 +271,7 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
                     negative_point_list.append(negative_point)
 
     positive_point_list = find_points(point_list,image)
-    print(positive_point_list.shape)
+    #print(positive_point_list.shape)
     point_list = list(np.array(point_list).reshape((8, Npoints * 2 // 8, 3)))
     negative_point_list = list(np.array(negative_point_list).reshape((8, Npoints * 2 // 8, 3)))
     positive_point_list = list(positive_point_list.reshape((8, Npoints * 2 // 8, 3)))
@@ -334,6 +334,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
             loss += (distance ** 2)
             cnt += 1
 
+        #a = 0.0
         # negative pairs
         for i in range(self.batch):
             x, y, z = fixed_points[i]
@@ -342,7 +343,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
             a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
             #print(torch.sqrt(distance))
-
+            #a += torch.sqrt(distance).item()
             '''
             if(torch.sqrt(distance).item() == 0.0):
                 print("fuck")
@@ -351,12 +352,12 @@ class CorrespondenceContrastiveLoss(nn.Module):
                 #continue
             '''
             loss += ((max(0, self.margin-torch.sqrt(distance))) ** 2)
-            #loss += ((0.01-torch.sqrt(distance))**2)
             cnt += 1
 
+        #print(a/self.batch)
         loss /= (2*cnt)
-        loss *= 1000000
-        print(loss)
+        loss *= 100
+        #print(loss)
         #exit()
         return loss
 
@@ -429,9 +430,12 @@ def train(args, model, device, loader, optimizer):
         continue
         '''
 
-
+        print("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
         if(os.path.exists("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
-            points_data = np.load("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            try:
+                points_data = np.load("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            except:
+                continue
             point_list = np.array(points_data[0])
             positive_point_list = np.array(points_data[1])
             negative_point_list = np.array(points_data[2])
@@ -449,7 +453,7 @@ def train(args, model, device, loader, optimizer):
         #for item in point_list[0]:
         #    assert(fixed_image_array[0][0][item[0]][item[1]][item[2]].item() != 0.0)
 
-        continue
+        #continue
 
         # crop image and triple points here
         fixed_image_array = fixed_image_array[:, :, crop_index[0]:crop_index[1], crop_index[2]:crop_index[3],
@@ -518,7 +522,7 @@ def train(args, model, device, loader, optimizer):
                         if(mini_batch*args.batch*8 == args.Npoints):
                             break
 
-
+        print(np.array(losses).mean())
         loss_history.append(np.array(losses).mean())
         if(len(loss_history) % args.loss_save_interval == 0):
             np.save(save_loss_filename,np.array(loss_history))
@@ -533,17 +537,17 @@ parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, load pre-trained model')
 parser.add_argument('--predict-model', type=str, default='', metavar='N',
                     help='If predict-model has a name, do not do training, just give result on dev and test set')
-parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=0.5, metavar='LR',
+parser.add_argument('--margin', type=float, default=0.2, metavar='LR',
                     help='margin')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
 parser.add_argument('--Npoints', type=int, default=10000, metavar='LR',
                     help='number of points for each image')
-parser.add_argument('--batch', type=int, default=50, metavar='LR',
+parser.add_argument('--batch', type=int, default=250, metavar='LR',
                     help='batch size of each update')
 parser.add_argument('--log_interval', type=int, default=5, metavar='LR',
                     help='log_interval')
@@ -566,7 +570,7 @@ print("Using device: "+str(device))
 load_pairs()
 
 model = featureLearner().to(device)
-#summary(model, input_size=(1, 256,256,256))
+summary(model, input_size=(1, 100, 88, 80))
 print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)
 

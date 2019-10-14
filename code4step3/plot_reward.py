@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-loss = np.load("loss_different_images_large_model2.npy")
-loss = loss[2:]
+loss = np.load("denseloss.npy")
+loss = loss[10:]
 x = np.arange(len(loss))
 
 plt.plot(x, loss)

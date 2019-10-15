@@ -71,56 +71,15 @@ def conv_block_4_3d(in_dim,out_dim,act_fn):
     )
     return model
 
-def fl_conv_block_3d(in_dim,out_dim,act_fn,dilation,is_final=False):
+def conv_block_3d_fl(in_dim,out_dim,act_fn,is_final=False):
     if(is_final):
-        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
+        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=0)
     else:
         model = nn.Sequential(
-            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation),
+            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=0),
             act_fn,
         )
     return model
-
-
-class featureLearner(nn.Module):
-    def __init__(self):
-        super(featureLearner, self).__init__()
-
-        self.in_dim = 1
-        self.mid1_dim = 32
-        self.mid2_dim = 32
-        self.mid3_dim = 16
-        self.out_dim = 8
-        act_fn = nn.ReLU()
-
-        print("\n------Initiating Network------\n")
-
-        self.cnn1 = fl_conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
-        self.cnn2 = fl_conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 2)
-        self.cnn3 = fl_conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 4)
-        self.cnn4 = fl_conv_block_3d(self.mid3_dim, self.out_dim, act_fn, 8, True)
-        self.reset_params()
-
-    @staticmethod
-    def weight_init(m):
-        if (isinstance(m, nn.Conv3d)):
-            # todo: change it to kaiming initialization
-            nn.init.kaiming_normal(m.weight)
-            nn.init.constant(m.bias, 0)
-
-    def reset_params(self):
-        for i, m in enumerate(self.modules()):
-            self.weight_init(m)
-
-    def forward(self, x):
-        x = self.cnn1(x)
-        x = self.cnn2(x)
-        x = self.cnn3(x)
-        out = self.cnn4(x)
-        return out
-
-    def save(self,epoch):
-        torch.save(self.state_dict(),"featureLearner"+'_'+str(epoch)+'.pt')
 
 
 class UnetGenerator_3d(nn.Module):
@@ -151,6 +110,7 @@ class UnetGenerator_3d(nn.Module):
         self.up_3 = conv_block_3_3d(self.num_filter * 3, self.num_filter * 1, act_fn)
 
         self.out = conv_block_4_3d(self.num_filter, out_dim, nn.LogSoftmax())
+        self.out_lovasz = conv_block_4_3d(self.num_filter, out_dim, nn.Softmax())
         self.reset_params()
 
     @staticmethod
@@ -182,9 +142,60 @@ class UnetGenerator_3d(nn.Module):
         trans_3 = self.trans_3(up_2)
         concat_3 = torch.cat([trans_3, down_1], dim=1)
         up_3 = self.up_3(concat_3)
-        out = self.out(up_3)
+        if(args.use_lovasz):
+            out = self.out_lovasz(up_3)
+        else:
+            out = self.out(up_3)
 
         return out
+
+class featureLearner(nn.Module):
+    def __init__(self):
+        super(featureLearner, self).__init__()
+
+        self.in_dim = 1
+        self.mid1_dim = 8
+        self.mid2_dim = 16
+        self.mid3_dim = 32
+        self.out_dim = 32
+        #act_fn = nn.LeakyReLU()
+        act_fn = nn.ReLU()
+
+        print("\n------Initiating Network------\n")
+
+        self.cnn1 = conv_block_3d_fl(self.in_dim, self.mid1_dim, act_fn)
+        self.pool1 = maxpool_3d()
+        self.cnn2 = conv_block_3d_fl(self.mid1_dim, self.mid2_dim, act_fn)
+        self.pool2 = maxpool_3d()
+        self.cnn3 = conv_block_3d_fl(self.mid2_dim, self.mid3_dim, act_fn)
+        self.pool3 = maxpool_3d()
+        self.cnn4 = conv_block_3d_fl(self.mid3_dim, self.out_dim, act_fn, True)
+        self.reset_params()
+
+    @staticmethod
+    def weight_init(m):
+        if (isinstance(m, nn.Conv3d)):
+            # todo: change it to kaiming initialization
+            nn.init.kaiming_normal(m.weight)
+            nn.init.constant(m.bias, 0)
+
+    def reset_params(self):
+        for i, m in enumerate(self.modules()):
+            self.weight_init(m)
+
+    def forward(self, x):
+        x = self.cnn1(x)
+        x = self.pool1(x)
+        x = self.cnn2(x)
+        x = self.pool2(x)
+        x = self.cnn3(x)
+        x = self.pool3(x)
+        out = self.cnn4(x)
+        return out
+
+    def save(self,epoch):
+        torch.save(self.state_dict(),"featureLearner"+'_'+str(epoch)+'.pt')
+
 
 def get_data(path):
     heart = sitk.ReadImage(path)
@@ -207,14 +218,26 @@ def load_Directory(is_train):
         data_directory = data_directory[:args.num_dev]
     return data_directory
 
-
-def abstract_feature(image):
-    #print(image.shape)
+def acbstact_feature(image):
+    assert (image.shape[0] == 1)
+    left_pad = (args.reception_size)//2
+    padding_image = np.zeros([image.shape[0],
+                              image.shape[1] + args.reception_size - 1,
+                              image.shape[2] + args.reception_size - 1,
+                              image.shape[3] + args.reception_size - 1
+                              ])
+    padding_image[:,left_pad:left_pad+image.shape[1],
+    left_pad:left_pad+image.shape[2], left_pad:left_pad+image.shape[3]] = image
+    feature = np.zeros([32,image.shape[1],image.shape[2],image.shape[3]])
+    fl_model.eval()
     with torch.no_grad():
-        feature = fl_model(torch.tensor([image]).to(device))
-    #print(feature.shape)
-    return feature[0]
-
+        for i in range(image.shape[1]):
+            for j in range(image.shape[2]):
+                for k in range(image.shape[3]):
+                    feature[:,i,j,k] = fl_model(torch.tensor(
+                        [padding_image[:,i:i+args.reception_size,j:j+args.reception_size,k:k+args.reception_size]]).float())[0,:,0,0,0]
+                    print(i,j,k)
+    return feature
 
 class BrainImageDataset(Dataset):
     def __init__(self, dirList):
@@ -233,7 +256,7 @@ class BrainImageDataset(Dataset):
         for i in range(len(label_list)):
             label += ((target == label_list[i])*i)
         label = label[0]
-        image = abstract_feature(image)
+        image = acbstact_feature(image)
 
         return (image, label)
 
@@ -290,13 +313,41 @@ def binary_dice_score(label, target, classes):
 
     for cls in classes:
         label_binary = binary_vector(label.flatten(), cls)
+        #print("label_binary")
+        #print(label_binary)
         target_binary = binary_vector(target.flatten(), cls)
+        #print("target_binary")
+        #print(target_binary)
         intersection = np.sum(label_binary * target_binary)
         normalization = np.sum(label_binary + target_binary)
         score = ((2. * intersection + smooth).sum() /
                  (normalization + smooth).sum())
         scores.append(score)
+        #print("--------------------")
     return scores
+
+def isnan(x):
+    return x != x
+
+def mean(l, ignore_nan=False, empty=0):
+    """
+    nanmean compatible with generators.
+    """
+    l = iter(l)
+    if ignore_nan:
+        l = ifilterfalse(isnan, l)
+    try:
+        n = 1
+        acc = next(l)
+    except StopIteration:
+        if empty == 'raise':
+            raise ValueError('Empty mean')
+        return empty
+    for n, v in enumerate(l, 2):
+        acc += v
+    if n == 1:
+        return acc
+    return acc / n
 
 
 def get_accuracy(dl, model):
@@ -334,6 +385,10 @@ def get_dice_score(dl, model):
 
     return np.mean(score)
 
+# convert model from entire network to only weights
+#a = torch.load("FeatureLearningModel.pt",map_location='cpu')
+#torch.save(a.state_dict(), "test.pt")
+#exit()
 
 def value2label(x):
     return label_map[x]
@@ -379,50 +434,44 @@ parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default=None, metavar='N',
+parser.add_argument('--load-model', type=str, default='', metavar='N',
                     help='If load-model has a name, use pretrained model')
-parser.add_argument('--embedding-model', type=str, default='featureLearningModel.pt', metavar='N',
+parser.add_argument('--embedding-model', type=str, default='FeatureLearningModel.pt', metavar='N',
                     help='pretrained feature learning model')
+parser.add_argument('--reception-size', type=int, default=38, metavar='CB',
+                    help='size of patch for generating features')
 args = parser.parse_args()
 
-ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
-#ROOT_DIR = "/Users/yukeyi/Desktop/"
+#ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
+ROOT_DIR = "/Users/yukeyi/Desktop/"
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
+os.chdir(ROOT_DIR)
 label_map, label_list = get_label_map()
 
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr)
 writer = SummaryWriter(timeStr+'/log')
 save_model_filename = timeStr + "/model"
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 train_dataset = BrainImageDataset(load_Directory(True))
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size, shuffle=True)
 dev_dataset = BrainImageDataset(load_Directory(False))
 dev_loader = torch.utils.data.DataLoader(dev_dataset,batch_size=args.test_batch_size, shuffle=False)
 
-model = UnetGenerator_3d(8, args.classes, args.channel_base)
-if(args.load_model is not None):
+model = UnetGenerator_3d(1, args.classes, args.channel_base)
+if(args.load_model != ""):
     print("Load model : "+args.load_model)
     model = torch.load(args.load_model)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 model = model.to(device)
-
-
+fl_model = featureLearner()
 if(device == torch.device('cpu')):
-    fl_model = torch.load(args.embedding_model,map_location='cpu')
+    fl_model.load_state_dict(torch.load(args.embedding_model, map_location='cpu'))
 else:
-    fl_model = torch.load(args.embedding_model)
-#torch.save(fl_model.state_dict(), "test.pt")
-#fl_model = featureLearner()
-#if(device == torch.device('cpu')):
-#    fl_model.load_state_dict(torch.load("test.pt", map_location='cpu'))
-#else:
-#    fl_model.load_state_dict(torch.load("test.pt"))
+    fl_model.load_state_dict(torch.load(args.embedding_model))
 fl_model = fl_model.to(device)
-fl_model.eval()
-
 
 best_dice = 0.0
 best_jaccard = 0
@@ -435,26 +484,23 @@ for epoch in range(args.epochs):
     #get_accuracy(dev_loader, model)
     total_loss = 0.0
     for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
-        if (len(whole_data) > 0):
-            try:
-                image_loss = 0.0
-                slice_depth = 256 // args.shard
-                for shard in range(args.shard):
-                    data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
-                                   whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
+        if(len(whole_data)>10):
+            image_loss = 0.0
+            slice_depth = 256 // args.shard
+            for shard in range(args.shard):
+                data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
+                               whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
 
-                    logsoftmax_output_z = model(data)
-                    loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
-                    #loss = loss.float().mean()
-                    loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
-                    optim.zero_grad()
-                    loss.backward()
-                    optim.step()
-                    total_loss += loss.item()
-                    image_loss += loss.item()
-                print("Batch : "+str(batch_idx) + " loss : "+str(image_loss))
-            except:
-                print("except occurs")
+                logsoftmax_output_z = model(data)
+                loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
+                #loss = loss.float().mean()
+                loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
+                optim.zero_grad()
+                loss.backward()
+                optim.step()
+                total_loss += loss.item()
+                image_loss += loss.item()
+            print("Batch : "+str(batch_idx) + " loss : "+str(image_loss))
 
         if (batch_idx + 1) % args.log_interval == 0:
 
@@ -475,6 +521,14 @@ for epoch in range(args.epochs):
             #dev_acc = get_accuracy(dev_loader, model)
             #print("Dev accuracy : " + str(dev_acc))
 
+            '''
+            if(args.save_model):
+                if(dev_dice > best_dice):
+                    print("Best model found")
+                    torch.save(model.state_dict(), timeStr + "model/dice/" + str(epoch) + ":" + str(dev_dice) + ".pt")
+                    best_dice = dev_dice
+                    #save_sample_result(dev_loader, model, epoch, 10)
+            '''
             model.train()
 
 print("Done")

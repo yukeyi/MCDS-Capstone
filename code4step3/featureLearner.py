@@ -304,6 +304,7 @@ def train(args, model, device, loader, optimizer, epoch):
 
                 loss_history.append(np.array(losses).mean())
                 if(len(loss_history) % 1 == 0):
+                    import pdb; pdb.set_trace()
                     np.save(save_loss_filename,np.array(loss_history))
                 print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx,

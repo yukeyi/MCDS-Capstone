@@ -15,6 +15,44 @@ from scipy import spatial
 import argparse
 import pandas as pd
 import pickle as pkl
+import json
+import sys
+from pynvml import *
+from torchsummary import summary
+
+
+# following three functions are used for checking gpu usage
+def getGpuUtilization(handle):
+    try:
+        util = nvmlDeviceGetUtilizationRates(handle)
+        gpu_util = int(util.gpu)
+    except NVMLError as err:
+        error = handleError(err)
+        gpu_util = error
+    return gpu_util
+
+def getMB(BSize):
+    return BSize / (1024 * 1024)
+
+def get_gpu_info(flag):
+    print(flag)
+    nvmlInit()
+    deviceCount = nvmlDeviceGetCount()
+    data = []
+    for i in range(deviceCount):
+        handle = nvmlDeviceGetHandleByIndex(i)
+        meminfo = nvmlDeviceGetMemoryInfo(handle)
+        gpu_util = getGpuUtilization(handle)
+        one = {"gpuUtil": gpu_util}
+        one["gpuId"] = i
+        one["memTotal"] = getMB(meminfo.total)
+        one["memUsed"] = getMB(meminfo.used)
+        one["memFree"] = getMB(meminfo.total)
+        one["temperature"] = nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU)
+        data.append(one)
+    data = {"gpuCount": deviceCount, "util": "Mb", "detail": data}
+    print(json.dumps(data))
+
 
 torch.backends.cudnn.enabled = False
 
@@ -22,9 +60,7 @@ ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_chal
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 os.chdir(ROOT_DIR)
-margin = 0.01
-epoch = 10
-cubic_size = 256
+
 
 register_pairs = {}
 
@@ -63,18 +99,23 @@ class Image:
         self.transformixImageFilter.Execute()
 
 def get_data(path):
-	heart = sitk.ReadImage(path)
-	heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
-	return heartArray
+    heart = sitk.ReadImage(path)
+    heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
+    return heartArray
 
-def conv_block_3d(in_dim,out_dim,act_fn):
-    model = nn.Sequential(
-        nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=1),
-        act_fn,
-        nn.Conv3d(out_dim,out_dim, kernel_size=3, stride=1, padding=1),
-    )
+def conv_block_3d(in_dim,out_dim,act_fn,dilation,is_final=False):
+    if(is_final):
+        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
+    else:
+        model = nn.Sequential(
+            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation),
+            act_fn,
+        )
     return model
 
+def maxpool_3d():
+    pool = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)
+    return pool
 
 def get_output_points(filename='outputpoints.txt'):
     fr = open(filename, 'r')
@@ -106,7 +147,6 @@ def find_points(point_list, image):
     # find the corresponding point
     image.register_points()
     transformed_points = get_output_points()
-    print(transformed_points.shape)
     return transformed_points
 
 class BrainImageDataset(Dataset):
@@ -125,23 +165,30 @@ class BrainImageDataset(Dataset):
         return len(self.data)
 
 class featureLearner(nn.Module):
-    def __init__(self, in_dim, out_dim):
+    def __init__(self):
         super(featureLearner, self).__init__()
 
-        self.in_dim = in_dim
-        self.out_dim = out_dim
-        act_fn = nn.LeakyReLU()
+        self.in_dim = 1
+        self.mid1_dim = 32
+        self.mid2_dim = 32
+        self.mid3_dim = 16
+        self.out_dim = 8
+        #act_fn = nn.LeakyReLU()
+        act_fn = nn.ReLU()
 
         print("\n------Initiating Network------\n")
 
-        self.cnn1 = conv_block_3d(self.in_dim, self.out_dim, act_fn)
-        #self.reset_params()
+        self.cnn1 = conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
+        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 2)
+        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 4)
+        self.cnn4 = conv_block_3d(self.mid3_dim, self.out_dim, act_fn, 8, True)
+        self.reset_params()
 
     @staticmethod
     def weight_init(m):
-        if (isinstance(m, nn.Conv3d) or isinstance(m, nn.ConvTranspose3d)):
+        if (isinstance(m, nn.Conv3d)):
             # todo: change it to kaiming initialization
-            nn.init.xavier_normal(m.weight)
+            nn.init.kaiming_normal(m.weight)
             nn.init.constant(m.bias, 0)
 
     def reset_params(self):
@@ -149,11 +196,27 @@ class featureLearner(nn.Module):
             self.weight_init(m)
 
     def forward(self, x):
-        out = self.cnn1(x)
+        #get_gpu_info(2)
+        x = self.cnn1(x)
+        #get_gpu_info(4)
+        x = self.cnn2(x)
+        #get_gpu_info(6)
+        x = self.cnn3(x)
+        #get_gpu_info(8)
+        out = self.cnn4(x)
+        #get_gpu_info(9)
         return out
+
     def save(self,epoch):
         torch.save(self.state_dict(),"featureLearner"+'_'+str(epoch)+'.pt')
 
+
+def point_redirection(x, y, z):
+    # Todo: fix this
+    x = x % crop_half_size[0]
+    y = y % crop_half_size[1]
+    z = z % crop_half_size[2]
+    return x, y, z
 
 def load_Directory(is_train):
     #read file with train data path
@@ -185,32 +248,62 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
     point_list = []
     negative_point_list = []
 
-    for i in range(Npoints):
-        while(1):
-            x = random.randint(0,255)
-            y = random.randint(0,255)
-            z = random.randint(0,255)
-            fixed_point = np.array([x,y,z]).astype('int')
-            if(fixed_image_array[0][0][x][y][z] != 0):
-                break
-        #generate negative point
-        while(1):
-            x = random.randint(0,255)
-            y = random.randint(0,255)
-            z = random.randint(0,255)
-            negative_point = np.array([x,y,z]).astype('int')
-            if(moving_image_array[0][0][x][y][z] != 0):
-                break
-        point_list.append(fixed_point)
-        negative_point_list.append(negative_point)
+    for x_shard in range(2):
+        for y_shard in range(2):
+            for z_shard in range(2):
+                for i in range(Npoints*2//8):
+                    while(1):
+                        x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0]-1)+crop_half_size[0]*x_shard
+                        y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
+                        z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
+                        fixed_point = np.array([x,y,z]).astype('int')
+                        if(fixed_image_array[0][0][x][y][z] != 0):
+                            break
+                    #generate negative point
+                    while(1):
+                        x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0]-1)+crop_half_size[0]*x_shard
+                        y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
+                        z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
+                        negative_point = np.array([x,y,z]).astype('int')
+                        if(moving_image_array[0][0][x][y][z] != 0):
+                            break
+                    point_list.append(fixed_point)
+                    negative_point_list.append(negative_point)
 
     positive_point_list = find_points(point_list,image)
+    #print(positive_point_list.shape)
+    point_list = list(np.array(point_list).reshape((8, Npoints * 2 // 8, 3)))
+    negative_point_list = list(np.array(negative_point_list).reshape((8, Npoints * 2 // 8, 3)))
+    positive_point_list = list(positive_point_list.reshape((8, Npoints * 2 // 8, 3)))
+
+    for i in range(8):
+        x_shard = i//4
+        y_shard = (i%4)//2
+        z_shard = i%2
+
+        cnt = 0
+        good_list = []
+        for item in positive_point_list[i]:
+            if(check_boundary_new(item[0],item[1],item[2], x_shard, y_shard, z_shard)):
+                good_list.append(cnt)
+                if(len(good_list) == Npoints//8):
+                    break
+                cnt += 1
+        point_list[i] = [point_list[i][index] for index in good_list]
+        positive_point_list[i] = [positive_point_list[i][index] for index in good_list]
+        negative_point_list[i] = [negative_point_list[i][index] for index in good_list]
+
+        if(len(good_list) != Npoints//8):
+            print("only part data generated : "+str(len(good_list)))
 
     return point_list, positive_point_list, negative_point_list
 
 
-def check_boundary(a,b,c,x,y,z):
-	return (a>=0 and a<256) and (b>=0 and b<256) and (c>=0 and c<256) and (x>=0 and x<256) and (y>=0 and y<256) and (z>=0 and z<256)  
+def check_boundary_new(a,b,c, x_shard, y_shard, z_shard):
+    # Todo: fix that
+	return (a>=crop_index[0]+x_shard*crop_half_size[0] and a<crop_index[0]+crop_half_size[0]+x_shard*crop_half_size[0]) \
+           and (b>=crop_index[2]+y_shard*crop_half_size[1] and b<crop_index[2]+crop_half_size[1]+y_shard*crop_half_size[1])\
+           and (c>=crop_index[4]+z_shard*crop_half_size[2] and c<crop_index[4]+crop_half_size[2]+z_shard*crop_half_size[2])
 
 
 class CorrespondenceContrastiveLoss(nn.Module):
@@ -219,98 +312,221 @@ class CorrespondenceContrastiveLoss(nn.Module):
     Takes feature of pairs of points and a target label == 1 if positive pair and label == 0 otherwise
     """
 
-    def __init__(self, margin, N):
+    def __init__(self, margin, batch):
         super(CorrespondenceContrastiveLoss, self).__init__()
         self.margin = margin
-        self.N = N
+        self.batch = batch
 
     def forward(self, fix_image_feature, moving_image_feature, fixed_points, positive_points, negative_points):
         loss = 0
         cnt = 0
 
+        # positive pairs
 
-        for i in range(self.N):
+        for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = positive_points[i]
-            if(check_boundary(a,b,c,x,y,z) == 0):
-                continue
-            label = 1 # positive pair
+            x, y, z = point_redirection(x, y, z)
+            a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
+            #print(torch.sqrt(distance))
             #print("pos "+str(math.sqrt(distance)))
-            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-torch.sqrt(distance))) ** 2)
+            loss += (distance ** 2)
             cnt += 1
 
-        for i in range(self.N):
+        #a = 0.0
+        # negative pairs
+        for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = negative_points[i]
-            if(check_boundary(a,b,c,x,y,z) == 0):
-                continue
-            label = 0 # negative pair
+            x, y, z = point_redirection(x, y, z)
+            a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            #print("neg " + str(math.sqrt(distance)))
-            loss += label * (distance ** 2) + (1-label) * ((max(0, self.margin-torch.sqrt(distance))) ** 2)
-            #loss += ((0.01-torch.sqrt(distance))**2)
+            #print(torch.sqrt(distance))
+            #a += torch.sqrt(distance).item()
+            '''
+            if(torch.sqrt(distance).item() == 0.0):
+                print("fuck")
+                print(fix_image_feature[0][:,x,y,z])
+                print(sdf[0][0][x][y][z])
+                #continue
+            '''
+            loss += ((max(0, self.margin-torch.sqrt(distance))) ** 2)
             cnt += 1
 
+        #print(a/self.batch)
         loss /= (2*cnt)
-        loss *= 10000
+        loss *= 100
+        #print(loss)
+        #exit()
         return loss
 
+crop_index = [25, 225, 28, 204, 48, 208]
+crop_size = [200, 176, 160]
+crop_half_size = [100, 88, 80]
 
-
-def train(args, model, device, loader, optimizer, epoch):
+def train(args, model, device, loader, optimizer):
 
     model.train()
-    criterion = CorrespondenceContrastiveLoss(margin, args.batch)
-    save_loss_filename = "loss"+str(epoch)+".npy"
+    criterion = CorrespondenceContrastiveLoss(args.margin, args.batch)
+    timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+    os.mkdir(timeStr)
+    save_loss_filename = timeStr+"/loss.npy"
+    save_model_filename = timeStr+"/model"
     loss_history = []
 
-    for batch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
+    #index_range = [255,0,255,0,255,0]
+
+    for epoch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
         #print(fix, type(fix))
         #print(moving, type(moving))
-        image = Image("".join(fix)+"-"+"".join(moving))
-        point_list, positive_point_list, negative_point_list = \
-            find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
+        # if we only want to generate points
+        print(epoch_idx)
 
-        mini_batch = 0
+        '''
+        # for finding the boundary, which is [11, 228, 25, 221, 47, 209]
+        # max 100 boundary, is [25, 221, 28, 205, 48, 209]
+        # for now we use [25, 224, 28, 203, 48, 207]
+        for image in [fixed_image_array, moving_image_array]:
+            index = []
+            image = image[0][0]
+            dim = image.sum(dim=[1, 2])
+            for i in range(0,256):
+                if(dim[i] != 0):
+                    index.append(i)
+                    break
+            for i in range(255,-1,-1):
+                if(dim[i] != 0):
+                    index.append(i)
+                    break
+            dim = image.sum(dim=[0, 2])
+            for i in range(0,256):
+                if(dim[i] != 0):
+                    index.append(i)
+                    break
+            for i in range(255,-1,-1):
+                if(dim[i] != 0):
+                    index.append(i)
+                    break
+            dim = image.sum(dim=[0, 1])
+            for i in range(0,256):
+                if(dim[i] != 0):
+                    index.append(i)
+                    break
+            for i in range(255,-1,-1):
+                if(dim[i] != 0):
+                    index.append(i)
+                    break
+            #print(index)
+            old_index_range = copy.deepcopy(index_range)
+            index_range[0] = min(index_range[0], index[0])
+            index_range[1] = max(index_range[1], index[1])
+            index_range[2] = min(index_range[2], index[2])
+            index_range[3] = max(index_range[3], index[3])
+            index_range[4] = min(index_range[4], index[4])
+            index_range[5] = max(index_range[5], index[5])
+            if(old_index_range != index_range):
+                print(index_range)
+        continue
+        '''
+
+        print("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+        if(os.path.exists("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
+            try:
+                points_data = np.load("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            except:
+                continue
+            point_list = np.array(points_data[0])
+            positive_point_list = np.array(points_data[1])
+            negative_point_list = np.array(points_data[2])
+        else:
+            image = Image("".join(fix)+"-"+"".join(moving))
+            print("".join(fix)+"-"+"".join(moving))
+            point_list, positive_point_list, negative_point_list = \
+                find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
+            points_data = np.array([point_list, positive_point_list, negative_point_list])
+            np.save("points_data/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
+            point_list = np.array(point_list)
+            positive_point_list = np.array(positive_point_list)
+            negative_point_list = np.array(negative_point_list)
+
+        #for item in point_list[0]:
+        #    assert(fixed_image_array[0][0][item[0]][item[1]][item[2]].item() != 0.0)
+
+        #continue
+
+        # crop image and triple points here
+        fixed_image_array = fixed_image_array[:, :, crop_index[0]:crop_index[1], crop_index[2]:crop_index[3],
+                            crop_index[4]:crop_index[5]]
+        moving_image_array = moving_image_array[:, :, crop_index[0]:crop_index[1], crop_index[2]:crop_index[3],
+                             crop_index[4]:crop_index[5]]
+
+        point_list[:, :, 0] -= crop_index[0]
+        point_list[:, :, 1] -= crop_index[2]
+        point_list[:, :, 2] -= crop_index[4]
+        positive_point_list[:, :, 0] -= crop_index[0]
+        positive_point_list[:, :, 1] -= crop_index[2]
+        positive_point_list[:, :, 2] -= crop_index[4]
+        negative_point_list[:, :, 0] -= crop_index[0]
+        negative_point_list[:, :, 1] -= crop_index[2]
+        negative_point_list[:, :, 2] -= crop_index[4]
+
+        #for item in point_list[0]:
+        #    assert (fixed_image_array[0][0][item[0]][item[1]][item[2]].item() != 0.0)
+        #    assert (item[0] < crop_half_size[0])
+        #    assert (item[1] < crop_half_size[1])
+        #    assert (item[2] < crop_half_size[2])
+
         losses = []
-        while(1):
-            fixed_image_array, moving_image_array = fixed_image_array.to(device), moving_image_array.to(device)
-            optimizer.zero_grad()
-            fixed_image_feature = model(fixed_image_array.float())
-            moving_image_feature = model(moving_image_array.float())
+        for x_shard in range(2):
+            for y_shard in range(2):
+                for z_shard in range(2):
 
-            start_pos = mini_batch * args.batch
-            end_pos = (mini_batch+1) * args.batch
-            loss = criterion(fixed_image_feature, moving_image_feature,
-                             point_list[start_pos:end_pos],
-                             positive_point_list[start_pos:end_pos],
-                             negative_point_list[start_pos:end_pos])
-            loss.backward()
-            optimizer.step()
-            losses.append(loss.item())
+                    mini_batch = 0
 
-            mini_batch += 1
-            if(mini_batch*args.batch == args.Npoints):
-                mini_batch = 0
+                    while (1):
+                        part_fixed_image_array = fixed_image_array[:, :,
+                                            x_shard * crop_half_size[0]:(x_shard + 1) * crop_half_size[0],
+                                            y_shard * crop_half_size[1]:(y_shard + 1) * crop_half_size[1],
+                                            z_shard * crop_half_size[2]:(z_shard + 1) * crop_half_size[2]]
+                        part_moving_image_array = moving_image_array[:, :,
+                                             x_shard * crop_half_size[0]:(x_shard + 1) * crop_half_size[0],
+                                             y_shard * crop_half_size[1]:(y_shard + 1) * crop_half_size[1],
+                                             z_shard * crop_half_size[2]:(z_shard + 1) * crop_half_size[2]]
 
-                randnum = random.randint(0, 100)
-                random.seed(randnum)
-                random.shuffle(point_list)
-                random.seed(randnum)
-                random.shuffle(positive_point_list)
-                random.seed(randnum)
-                random.shuffle(negative_point_list)
+                        part_fixed_image_array, part_moving_image_array = part_fixed_image_array.to(device), part_moving_image_array.to(device)
+                        optimizer.zero_grad()
 
-                loss_history.append(np.array(losses).mean())
-                if(len(loss_history) % 1 == 0):
-                    import pdb; pdb.set_trace()
-                    np.save(save_loss_filename,np.array(loss_history))
-                print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, batch_idx,
-                    100. * batch_idx / loader.__len__(), np.array(losses).mean()))
-                losses = []
+                        fixed_image_feature = model(part_fixed_image_array.float())
+                        moving_image_feature = model(part_moving_image_array.float())
 
+                        start_pos = mini_batch * args.batch
+                        end_pos = (mini_batch+1) * args.batch
+                        loss = criterion(fixed_image_feature, moving_image_feature,
+                                         point_list[4*x_shard+2*y_shard+z_shard][start_pos:end_pos],
+                                         positive_point_list[4*x_shard+2*y_shard+z_shard][start_pos:end_pos],
+                                         negative_point_list[4*x_shard+2*y_shard+z_shard][start_pos:end_pos])
+                        loss.backward()
+                        optimizer.step()
+                        losses.append(loss.item())
+
+                        mini_batch += 1
+
+                        if(mini_batch % args.log_interval == 0):
+                            print('Train Epoch: '+str(epoch_idx) + " Corner : "+str(4*x_shard+2*y_shard+z_shard)+" mini_batch: "+
+                                  str(mini_batch)+"  percentage: "+
+                                  str(100. * epoch_idx / loader.__len__())+"% loss: "+
+                                  str(np.array(losses[-1*args.log_interval:]).mean()))
+
+                        if(mini_batch*args.batch*8 == args.Npoints):
+                            break
+
+        print(np.array(losses).mean())
+        loss_history.append(np.array(losses).mean())
+        if(len(loss_history) % args.loss_save_interval == 0):
+            np.save(save_loss_filename,np.array(loss_history))
+        if(len(loss_history) % args.model_save_interval == 0):
+            torch.save(model, save_model_filename+str(epoch_idx)+'.pt')
 
 
 parser = argparse.ArgumentParser(description='PyTorch')
@@ -318,18 +534,26 @@ parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, load pre-trained model')
 parser.add_argument('--predict-model', type=str, default='', metavar='N',
                     help='If predict-model has a name, do not do training, just give result on dev and test set')
-parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
+parser.add_argument('--margin', type=float, default=0.2, metavar='LR',
+                    help='margin')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
 parser.add_argument('--Npoints', type=int, default=10000, metavar='LR',
                     help='number of points for each image')
-parser.add_argument('--batch', type=int, default=200, metavar='LR',
+parser.add_argument('--batch', type=int, default=250, metavar='LR',
                     help='batch size of each update')
-parser.add_argument('--log_interval', type=int, default=1, metavar='LR',
+parser.add_argument('--log_interval', type=int, default=5, metavar='LR',
                     help='log_interval')
+parser.add_argument('--loss_save_interval', type=int, default=1, metavar='LR',
+                    help='loss_save_interval')
+parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
+                    help='model_save_interval')
+parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
+                    help='cubic_size')
 
 input_args = parser.parse_args()
 
@@ -342,14 +566,14 @@ print("Using device: "+str(device))
 #store all pairs of registration
 load_pairs()
 
-model = featureLearner(1,2).to(device)
+model = featureLearner().to(device)
+summary(model, input_size=(1, 100, 88, 80))
 print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)
 
 train_dataset = BrainImageDataset(load_Directory(True))
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=1, shuffle=True)
 
-for epoch in range(1, input_args.epoch+1):
-    train(input_args, model, device, train_loader, optimizer, epoch)
-    model.save(epoch)
+train(input_args, model, device, train_loader, optimizer)
+#model.save(0)
 

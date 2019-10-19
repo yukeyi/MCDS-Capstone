@@ -19,7 +19,7 @@ import json
 import sys
 from pynvml import *
 from torchsummary import summary
-
+# explore parameter margin: for 6 layer CNN use 1.5, for dense net use 6.0
 
 # following three functions are used for checking gpu usage
 def getGpuUtilization(handle):

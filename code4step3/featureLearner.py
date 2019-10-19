@@ -162,7 +162,7 @@ class featureLearner(nn.Module):
         super(featureLearner, self).__init__()
 
         self.in_dim = 1
-        self.mid1_dim = 16
+        self.mid1_dim = 24
         self.mid2_dim = 32
         self.mid3_dim = 32
         self.out_dim = 64
@@ -200,6 +200,7 @@ class featureLearner(nn.Module):
         y3 = self.act_fn(self.cnn23(y2)+self.cnn13(x))
         y4 = self.act_fn(self.cnn34(y3)+self.cnn24(y2)+self.cnn14(x))
         out = self.act_fn(self.cnn45(y4)+self.cnn35(y3) + self.cnn25(y2) + self.cnn15(x))
+        #get_gpu_info(2)
         return out
 
     def save(self,epoch):
@@ -337,7 +338,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
             x, y, z = point_redirection(x, y, z)
             a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            print(torch.sqrt(distance))
+            #print(torch.sqrt(distance))
             #a += torch.sqrt(distance).item()
             '''
             if(torch.sqrt(distance).item() == 0.0):
@@ -533,7 +534,7 @@ parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=0.3, metavar='LR',
+parser.add_argument('--margin', type=float, default=6.0, metavar='LR',
                     help='margin')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')

@@ -210,11 +210,28 @@ def load_Directory(is_train):
 
 def abstract_feature(image):
     #print(image.shape)
+
+    feature = np.zeros((2,256,256,256))
+    #feature[0] = image
+    #feature[1] = image
+    #return feature
     with torch.no_grad():
         feature = fl_model(torch.tensor([image]).to(device))
-    #print(feature.shape)
     return feature[0]
 
+# original point is put at the front of result
+def find_neighbor(image, point):
+    diff = image.transpose(1,2,3,0)-image[:,point[0],point[1],point[2]]
+    diff = (diff*diff).sum(axis=3).reshape(-1)
+    points = np.argpartition(diff,args.KNN)[:args.KNN]
+    res = []
+    res.append(point)
+    for item in points:
+        res.append([item//65536,(item%65536)//256,item%256])
+        #assert(item == (item//65536)*256*256+((item%65536)//256)*256+item%256)
+    del diff
+    del points
+    return res
 
 class BrainImageDataset(Dataset):
     def __init__(self, dirList):
@@ -234,7 +251,17 @@ class BrainImageDataset(Dataset):
             label += ((target == label_list[i])*i)
         label = label[0]
         image = abstract_feature(image)
-
+        if(args.KNN > 0):
+            KNN_res = []
+            cnt = 1
+            for point in test_points:
+                #print(cnt)
+                cnt += 1
+                if(image[:,point[0],point[1],point[2]].sum() == 0):
+                    continue
+                point_res = find_neighbor(image.cpu().numpy(), point)
+                KNN_res.append(point_res)
+            np.save(timeStr+"/"+name+"_KNN_RES",KNN_res)
         return (image, label)
 
     def __len__(self):
@@ -349,6 +376,16 @@ def get_label_map():
         label_map[label_list[i]] = i
     return label_map, label_list
 
+def get_KNN_landmark():
+    crop_index = [35, 216, 41, 192, 53, 204]
+    points = []
+    for i in range(crop_index[0],crop_index[1], 60):
+        for j in range(crop_index[2],crop_index[3], 50):
+            for k in range(crop_index[4],crop_index[5], 50):
+                points.append([i,j,k])
+    #print(points)
+    return points
+
 
 parser = argparse.ArgumentParser(description='UNET Implementation')
 parser.add_argument('--batch-size', type=int, default=1, metavar='N',
@@ -365,6 +402,8 @@ parser.add_argument('--num_train', type=int, default=3000, metavar='N',
                     help='number of data for training')
 parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
+parser.add_argument('--KNN', type=int, default=5, metavar='N',
+                    help='if KNN is not 0, we generate KNN matching for each image, K is set')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
 parser.add_argument('--augmentation', type=float, default=10.0, metavar='LR',
@@ -385,8 +424,8 @@ parser.add_argument('--embedding-model', type=str, default='featureLearningModel
                     help='pretrained feature learning model')
 args = parser.parse_args()
 
-#ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
-ROOT_DIR = "/Users/yukeyi/Desktop/"
+ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
+#ROOT_DIR = "/Users/yukeyi/Desktop/"
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 label_map, label_list = get_label_map()
@@ -428,6 +467,8 @@ best_dice = 0.0
 best_jaccard = 0
 optim = torch.optim.Adam(model.parameters(),lr=args.lr)
 
+if(args.KNN>0):
+    test_points = get_KNN_landmark()
 
 model.train()
 for epoch in range(args.epochs):
@@ -435,6 +476,9 @@ for epoch in range(args.epochs):
     #get_accuracy(dev_loader, model)
     total_loss = 0.0
     for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
+        if(args.KNN != 0):
+            print(batch_idx)
+            continue
         if (len(whole_data) > 0):
             try:
                 image_loss = 0.0

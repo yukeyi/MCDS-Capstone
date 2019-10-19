@@ -480,7 +480,6 @@ def train(args, model, device, loader, optimizer):
         #    assert (item[2] < crop_half_size[2])
 
         losses = []
-
         for x_shard in range(2):
             for y_shard in range(2):
                 for z_shard in range(2):
@@ -530,8 +529,6 @@ def train(args, model, device, loader, optimizer):
             np.save(save_loss_filename,np.array(loss_history))
         if(len(loss_history) % args.model_save_interval == 0):
             torch.save(model, save_model_filename+str(epoch_idx)+'.pt')
-
-
 
 
 parser = argparse.ArgumentParser(description='PyTorch')

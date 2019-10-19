@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e688956d-a1a9-4700-b339-28bcfdecc0c4" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/featureLearner.py" beforeDir="false" afterPath="$PROJECT_DIR$/featureLearner.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main3D_with_embedding.py" beforeDir="false" afterPath="$PROJECT_DIR$/main3D_with_embedding.py" afterDir="false" />
-    </list>
+    <list default="true" id="e688956d-a1a9-4700-b339-28bcfdecc0c4" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,8 +13,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/featureLearner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="315">
-              <caret line="172" column="26" selection-start-line="172" selection-start-column="26" selection-end-line="172" selection-end-column="26" />
+            <state relative-caret-position="2026">
+              <caret line="273" selection-start-line="273" selection-end-line="273" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -91,12 +88,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1571443704817</updated>
-      <workItem from="1571443706037" duration="1769000" />
+      <workItem from="1571443706037" duration="1994000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1769000" />
+    <option name="totallyTimeSpent" value="1994000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1440" y="23" width="1920" height="1057" extended-state="6" />
@@ -131,8 +128,8 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/featureLearner.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="315">
-          <caret line="172" column="26" selection-start-line="172" selection-start-column="26" selection-end-line="172" selection-end-column="26" />
+        <state relative-caret-position="2026">
+          <caret line="273" selection-start-line="273" selection-end-line="273" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>

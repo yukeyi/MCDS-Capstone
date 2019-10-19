@@ -103,15 +103,8 @@ def get_data(path):
     heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
     return heartArray
 
-def conv_block_3d(in_dim,out_dim,act_fn,dilation,is_final=False):
-    if(is_final):
-        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
-    else:
-        model = nn.Sequential(
-            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation),
-            act_fn,
-        )
-    return model
+def conv_block_3d(in_dim,out_dim,dilation,is_final=False):
+    return nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
 
 def maxpool_3d():
     pool = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)
@@ -170,22 +163,25 @@ class featureLearner(nn.Module):
 
         self.in_dim = 1
         self.mid1_dim = 16
-        self.mid2_dim = 16
+        self.mid2_dim = 32
         self.mid3_dim = 32
-        self.mid4_dim = 32
-        self.mid5_dim = 64
         self.out_dim = 64
         #act_fn = nn.LeakyReLU()
         act_fn = nn.ReLU()
+        self.act_fn = act_fn
 
         print("\n------Initiating Network------\n")
 
-        self.cnn1 = conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
-        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 1)
-        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 2)
-        self.cnn4 = conv_block_3d(self.mid3_dim, self.mid4_dim, act_fn, 2)
-        self.cnn5 = conv_block_3d(self.mid4_dim, self.mid5_dim, act_fn, 4)
-        self.cnn6 = conv_block_3d(self.mid5_dim, self.out_dim, act_fn, 8, True)
+        self.cnn12 = conv_block_3d(self.in_dim, self.mid1_dim, 1)
+        self.cnn13 = conv_block_3d(self.in_dim, self.mid2_dim, 1)
+        self.cnn23 = conv_block_3d(self.mid1_dim, self.mid2_dim, 2)
+        self.cnn14 = conv_block_3d(self.in_dim, self.mid3_dim, 1)
+        self.cnn24 = conv_block_3d(self.mid1_dim, self.mid3_dim, 2)
+        self.cnn34 = conv_block_3d(self.mid2_dim, self.mid3_dim, 4)
+        self.cnn15 = conv_block_3d(self.in_dim, self.out_dim, 1)
+        self.cnn25 = conv_block_3d(self.mid1_dim, self.out_dim, 2)
+        self.cnn35 = conv_block_3d(self.mid2_dim, self.out_dim, 4)
+        self.cnn45 = conv_block_3d(self.mid3_dim, self.out_dim, 8)
         self.reset_params()
 
     @staticmethod
@@ -200,13 +196,10 @@ class featureLearner(nn.Module):
             self.weight_init(m)
 
     def forward(self, x):
-        x = self.cnn1(x)
-        x = self.cnn2(x)
-        x = self.cnn3(x)
-        x = self.cnn4(x)
-        x = self.cnn5(x)
-        out = self.cnn6(x)
-        #get_gpu_info(2)
+        y2 = self.act_fn(self.cnn12(x))
+        y3 = self.act_fn(self.cnn23(y2)+self.cnn13(x))
+        y4 = self.act_fn(self.cnn34(y3)+self.cnn24(y2)+self.cnn14(x))
+        out = self.act_fn(self.cnn45(y4)+self.cnn35(y3) + self.cnn25(y2) + self.cnn15(x))
         return out
 
     def save(self,epoch):
@@ -344,7 +337,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
             x, y, z = point_redirection(x, y, z)
             a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            #print(torch.sqrt(distance))
+            print(torch.sqrt(distance))
             #a += torch.sqrt(distance).item()
             '''
             if(torch.sqrt(distance).item() == 0.0):

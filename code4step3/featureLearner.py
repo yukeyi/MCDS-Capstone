@@ -169,19 +169,23 @@ class featureLearner(nn.Module):
         super(featureLearner, self).__init__()
 
         self.in_dim = 1
-        self.mid1_dim = 32
-        self.mid2_dim = 32
-        self.mid3_dim = 16
-        self.out_dim = 8
+        self.mid1_dim = 16
+        self.mid2_dim = 16
+        self.mid3_dim = 32
+        self.mid4_dim = 32
+        self.mid5_dim = 64
+        self.out_dim = 64
         #act_fn = nn.LeakyReLU()
         act_fn = nn.ReLU()
 
         print("\n------Initiating Network------\n")
 
         self.cnn1 = conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
-        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 2)
-        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 4)
-        self.cnn4 = conv_block_3d(self.mid3_dim, self.out_dim, act_fn, 8, True)
+        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 1)
+        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 2)
+        self.cnn4 = conv_block_3d(self.mid3_dim, self.mid4_dim, act_fn, 2)
+        self.cnn5 = conv_block_3d(self.mid4_dim, self.mid5_dim, act_fn, 4)
+        self.cnn6 = conv_block_3d(self.mid5_dim, self.out_dim, act_fn, 8, True)
         self.reset_params()
 
     @staticmethod
@@ -196,15 +200,13 @@ class featureLearner(nn.Module):
             self.weight_init(m)
 
     def forward(self, x):
-        #get_gpu_info(2)
         x = self.cnn1(x)
-        #get_gpu_info(4)
         x = self.cnn2(x)
-        #get_gpu_info(6)
         x = self.cnn3(x)
-        #get_gpu_info(8)
-        out = self.cnn4(x)
-        #get_gpu_info(9)
+        x = self.cnn4(x)
+        x = self.cnn5(x)
+        out = self.cnn6(x)
+        #get_gpu_info(2)
         return out
 
     def save(self,epoch):
@@ -541,7 +543,7 @@ parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=0.2, metavar='LR',
+parser.add_argument('--margin', type=float, default=0.3, metavar='LR',
                     help='margin')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')

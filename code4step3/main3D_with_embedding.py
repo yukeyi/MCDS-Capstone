@@ -385,8 +385,8 @@ parser.add_argument('--embedding-model', type=str, default='featureLearningModel
                     help='pretrained feature learning model')
 args = parser.parse_args()
 
-ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
-#ROOT_DIR = "/Users/yukeyi/Desktop/"
+#ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
+ROOT_DIR = "/Users/yukeyi/Desktop/"
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 label_map, label_list = get_label_map()
@@ -408,7 +408,7 @@ if(args.load_model is not None):
     model = torch.load(args.load_model)
 print(device)
 model = model.to(device)
-
+print(model)
 
 if(device == torch.device('cpu')):
     fl_model = torch.load(args.embedding_model,map_location='cpu')

@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
 from torchsummary import summary
+import copy
 from tensorboardX import SummaryWriter
 
 try:
@@ -220,8 +221,8 @@ def abstract_feature(image):
     return feature[0]
 
 # original point is put at the front of result
-def find_neighbor(image, point):
-    diff = image.transpose(1,2,3,0)-image[:,point[0],point[1],point[2]]
+def find_neighbor(image, point, feature):
+    diff = image.transpose(1,2,3,0)-feature
     diff = (diff*diff).sum(axis=3).reshape(-1)
     points = np.argpartition(diff,args.KNN)[:args.KNN]
     res = []
@@ -239,6 +240,11 @@ class BrainImageDataset(Dataset):
 
     def __getitem__(self, index):
 
+        global fix_name
+        global fix_feature
+        global fix_image
+        global batch_id
+
         name = self.data[index]
         try:
             image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32")
@@ -250,18 +256,24 @@ class BrainImageDataset(Dataset):
         for i in range(len(label_list)):
             label += ((target == label_list[i])*i)
         label = label[0]
+        if(args.KNN > 0 and batch_id % 2 == 0):
+            fix_image = copy.deepcopy(image)
         image = abstract_feature(image)
         if(args.KNN > 0):
-            KNN_res = []
-            cnt = 1
-            for point in test_points:
-                #print(cnt)
-                cnt += 1
-                if(image[:,point[0],point[1],point[2]].sum() == 0):
-                    continue
-                point_res = find_neighbor(image.cpu().numpy(), point)
-                KNN_res.append(point_res)
-            np.save(timeStr+"/"+name+"_KNN_RES",KNN_res)
+            if(batch_id % 2 == 0):
+                fix_name = name
+                fix_feature = copy.deepcopy(image.cpu().numpy())
+            else:
+                KNN_res = []
+                cnt = 1
+                for point in test_points:
+                    #print(cnt)
+                    cnt += 1
+                    if(fix_image[:,point[0],point[1],point[2]].sum() == 0):
+                        continue
+                    point_res = find_neighbor(image.cpu().numpy(), point, fix_feature[:,point[0],point[1],point[2]])
+                    KNN_res.append(point_res)
+                np.save(timeStr+"/"+fix_name+"-"+name+"_KNN_RES",KNN_res)
         return (image, label)
 
     def __len__(self):
@@ -469,6 +481,11 @@ optim = torch.optim.Adam(model.parameters(),lr=args.lr)
 
 if(args.KNN>0):
     test_points = get_KNN_landmark()
+    fix_name = ""
+    fix_position = []
+    fix_feature = []
+    fix_image = []
+    batch_id = 0
 
 model.train()
 for epoch in range(args.epochs):
@@ -477,6 +494,7 @@ for epoch in range(args.epochs):
     total_loss = 0.0
     for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
         if(args.KNN != 0):
+            batch_id = batch_idx
             print(batch_idx)
             continue
         if (len(whole_data) > 0):

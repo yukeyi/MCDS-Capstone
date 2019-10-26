@@ -162,26 +162,23 @@ class featureLearner(nn.Module):
         super(featureLearner, self).__init__()
 
         self.in_dim = 1
-        self.mid1_dim = 24
-        self.mid2_dim = 32
+        self.mid1_dim = 16
+        self.mid2_dim = 16
         self.mid3_dim = 32
+        self.mid4_dim = 32
+        self.mid5_dim = 64
         self.out_dim = 64
         #act_fn = nn.LeakyReLU()
         act_fn = nn.ReLU()
-        self.act_fn = act_fn
 
         print("\n------Initiating Network------\n")
 
-        self.cnn12 = conv_block_3d(self.in_dim, self.mid1_dim, 1)
-        self.cnn13 = conv_block_3d(self.in_dim, self.mid2_dim, 1)
-        self.cnn23 = conv_block_3d(self.mid1_dim, self.mid2_dim, 2)
-        self.cnn14 = conv_block_3d(self.in_dim, self.mid3_dim, 1)
-        self.cnn24 = conv_block_3d(self.mid1_dim, self.mid3_dim, 2)
-        self.cnn34 = conv_block_3d(self.mid2_dim, self.mid3_dim, 4)
-        self.cnn15 = conv_block_3d(self.in_dim, self.out_dim, 1)
-        self.cnn25 = conv_block_3d(self.mid1_dim, self.out_dim, 2)
-        self.cnn35 = conv_block_3d(self.mid2_dim, self.out_dim, 4)
-        self.cnn45 = conv_block_3d(self.mid3_dim, self.out_dim, 8)
+        self.cnn1 = conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
+        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 1)
+        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 2)
+        self.cnn4 = conv_block_3d(self.mid3_dim, self.mid4_dim, act_fn, 2)
+        self.cnn5 = conv_block_3d(self.mid4_dim, self.mid5_dim, act_fn, 4)
+        self.cnn6 = conv_block_3d(self.mid5_dim, self.out_dim, act_fn, 8, True)
         self.reset_params()
 
     @staticmethod
@@ -196,15 +193,18 @@ class featureLearner(nn.Module):
             self.weight_init(m)
 
     def forward(self, x):
-        y2 = self.act_fn(self.cnn12(x))
-        y3 = self.act_fn(self.cnn23(y2)+self.cnn13(x))
-        y4 = self.act_fn(self.cnn34(y3)+self.cnn24(y2)+self.cnn14(x))
-        out = self.act_fn(self.cnn45(y4)+self.cnn35(y3) + self.cnn25(y2) + self.cnn15(x))
+        x = self.cnn1(x)
+        x = self.cnn2(x)
+        x = self.cnn3(x)
+        x = self.cnn4(x)
+        x = self.cnn5(x)
+        out = self.cnn6(x)
         #get_gpu_info(2)
         return out
 
     def save(self,epoch):
         torch.save(self.state_dict(),"featureLearner"+'_'+str(epoch)+'.pt')
+
 
 
 def point_redirection(x, y, z):
@@ -328,17 +328,19 @@ class CorrespondenceContrastiveLoss(nn.Module):
             #print(torch.sqrt(distance))
             #print("pos "+str(math.sqrt(distance)))
             loss += (distance ** 2)
+            #print(distance ** 2)
             cnt += 1
 
         #a = 0.0
         # negative pairs
+        #print("start negative pairs")
         for i in range(self.batch):
             x, y, z = fixed_points[i]
             a, b, c = negative_points[i]
             x, y, z = point_redirection(x, y, z)
             a, b, c = point_redirection(a, b, c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
-            #print(torch.sqrt(distance))
+            #print(((max(0, self.margin-torch.sqrt(distance))) ** 2))
             #a += torch.sqrt(distance).item()
             '''
             if(torch.sqrt(distance).item() == 0.0):
@@ -348,12 +350,12 @@ class CorrespondenceContrastiveLoss(nn.Module):
                 #continue
             '''
             loss += ((max(0, self.margin-torch.sqrt(distance))) ** 2)
+            #print(loss)
             cnt += 1
 
         #print(a/self.batch)
         loss /= (2*cnt)
         loss *= 100
-        #print(loss)
         #exit()
         return loss
 

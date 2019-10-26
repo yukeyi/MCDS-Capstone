@@ -103,8 +103,15 @@ def get_data(path):
     heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
     return heartArray
 
-def conv_block_3d(in_dim,out_dim,dilation,is_final=False):
-    return nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
+def conv_block_3d(in_dim,out_dim,act_fn,dilation,is_final=False):
+    if(is_final):
+        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
+    else:
+        model = nn.Sequential(
+            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation),
+            act_fn,
+        )
+    return model
 
 def maxpool_3d():
     pool = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)
@@ -316,8 +323,9 @@ class CorrespondenceContrastiveLoss(nn.Module):
     def forward(self, fix_image_feature, moving_image_feature, fixed_points, positive_points, negative_points):
         loss = 0
         cnt = 0
-
         # positive pairs
+        pos_dis = []
+        neg_dis = []
 
         for i in range(self.batch):
             x, y, z = fixed_points[i]
@@ -327,7 +335,8 @@ class CorrespondenceContrastiveLoss(nn.Module):
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
             #print(torch.sqrt(distance))
             #print("pos "+str(math.sqrt(distance)))
-            loss += (distance ** 2)
+            loss += distance
+            pos_dis.append(torch.sqrt(distance).detach().item())
             #print(distance ** 2)
             cnt += 1
 
@@ -349,6 +358,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
                 print(sdf[0][0][x][y][z])
                 #continue
             '''
+            neg_dis.append(torch.sqrt(distance).detach().item())
             loss += ((max(0, self.margin-torch.sqrt(distance))) ** 2)
             #print(loss)
             cnt += 1
@@ -357,7 +367,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
         loss /= (2*cnt)
         loss *= 100
         #exit()
-        return loss
+        return loss, pos_dis, neg_dis
 
 crop_index = [25, 225, 28, 204, 48, 208]
 crop_size = [200, 176, 160]
@@ -370,8 +380,12 @@ def train(args, model, device, loader, optimizer):
     timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
     os.mkdir(timeStr)
     save_loss_filename = timeStr+"/loss.npy"
+    save_dis_filename = timeStr + "/distance.npy"
     save_model_filename = timeStr+"/model"
     loss_history = []
+    positive_distance_history = []
+    negative_distance_history = []
+
 
     #index_range = [255,0,255,0,255,0]
 
@@ -380,6 +394,8 @@ def train(args, model, device, loader, optimizer):
         #print(moving, type(moving))
         # if we only want to generate points
         print(epoch_idx)
+        positive_distance = []
+        negative_distance = []
 
         '''
         # for finding the boundary, which is [11, 228, 25, 221, 47, 209]
@@ -500,10 +516,13 @@ def train(args, model, device, loader, optimizer):
 
                         start_pos = mini_batch * args.batch
                         end_pos = (mini_batch+1) * args.batch
-                        loss = criterion(fixed_image_feature, moving_image_feature,
+                        loss, pos_dis, neg_dis = criterion(fixed_image_feature, moving_image_feature,
                                          point_list[4*x_shard+2*y_shard+z_shard][start_pos:end_pos],
                                          positive_point_list[4*x_shard+2*y_shard+z_shard][start_pos:end_pos],
                                          negative_point_list[4*x_shard+2*y_shard+z_shard][start_pos:end_pos])
+                        positive_distance.append(pos_dis)
+                        negative_distance.append(neg_dis)
+
                         loss.backward()
                         optimizer.step()
                         losses.append(loss.item())
@@ -521,8 +540,12 @@ def train(args, model, device, loader, optimizer):
 
         print(np.array(losses).mean())
         loss_history.append(np.array(losses).mean())
+        #print(positive_distance)
+        positive_distance_history.append(np.array(positive_distance).mean())
+        negative_distance_history.append(np.array(negative_distance).mean())
         if(len(loss_history) % args.loss_save_interval == 0):
             np.save(save_loss_filename,np.array(loss_history))
+            np.save(save_dis_filename, np.array([positive_distance_history,negative_distance_history]))
         if(len(loss_history) % args.model_save_interval == 0):
             torch.save(model, save_model_filename+str(epoch_idx)+'.pt')
 
@@ -536,7 +559,7 @@ parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=6.0, metavar='LR',
+parser.add_argument('--margin', type=float, default=0.5, metavar='LR',
                     help='margin')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')

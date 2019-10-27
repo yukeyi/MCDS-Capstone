@@ -1,238 +1,22 @@
 import os
-import random
 import time
-import cv2
-import shutil
 import argparse
 import numpy as np
 import torch
-import sys
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
-from torchsummary import summary
 import copy
 from tensorboardX import SummaryWriter
+from unet_model import UnetGenerator_3d
+from unet_data_loader_util import get_data, load_Directory, get_label_map
+from feature_learner_model import featureLearner, featureLearner_old
 
 try:
     from itertools import  ifilterfalse
 except ImportError: # py3k
     from itertools import  filterfalse as ifilterfalse
-import SimpleITK as sitk
 
-import torchvision.transforms as transforms
-
-
-def conv_block_3d(in_dim,out_dim,act_fn):
-    model = nn.Sequential(
-        nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=1),
-        nn.BatchNorm3d(out_dim),
-        act_fn,
-    )
-    return model
-
-
-def conv_trans_block_3d(in_dim,out_dim,act_fn):
-    model = nn.Sequential(
-        nn.ConvTranspose3d(in_dim,out_dim, kernel_size=3, stride=2, padding=1,output_padding=1),
-        nn.BatchNorm3d(out_dim),
-        act_fn,
-    )
-    return model
-
-
-def maxpool_3d():
-    pool = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)
-    return pool
-
-
-def conv_block_2_3d(in_dim,out_dim,act_fn):
-    model = nn.Sequential(
-        conv_block_3d(in_dim,out_dim//2,act_fn),
-        nn.Conv3d(out_dim//2,out_dim, kernel_size=3, stride=1, padding=1),
-        nn.BatchNorm3d(out_dim),
-    )
-    return model
-
-
-def conv_block_3_3d(in_dim,out_dim,act_fn):
-    model = nn.Sequential(
-        conv_block_3d(in_dim,out_dim,act_fn),
-        nn.Conv3d(out_dim,out_dim, kernel_size=3, stride=1, padding=1),
-        nn.BatchNorm3d(out_dim),
-    )
-    return model
-
-def conv_block_4_3d(in_dim,out_dim,act_fn):
-    model = nn.Sequential(
-        nn.Conv3d(in_dim,out_dim, kernel_size=1, stride=1, padding=0),
-        nn.BatchNorm3d(out_dim),
-        act_fn,
-    )
-    return model
-
-def fl_conv_block_3d(in_dim,out_dim,act_fn,dilation,is_final=False):
-    if(is_final):
-        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
-    else:
-        model = nn.Sequential(
-            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation),
-            act_fn,
-        )
-    return model
-
-
-class featureLearner(nn.Module):
-    def __init__(self):
-        super(featureLearner, self).__init__()
-
-        self.in_dim = 1
-        self.mid1_dim = 32
-        self.mid2_dim = 32
-        self.mid3_dim = 16
-        self.out_dim = 8
-        act_fn = nn.ReLU()
-
-        print("\n------Initiating Network------\n")
-
-        self.cnn1 = fl_conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
-        self.cnn2 = fl_conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 2)
-        self.cnn3 = fl_conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 4)
-        self.cnn4 = fl_conv_block_3d(self.mid3_dim, self.out_dim, act_fn, 8, True)
-        self.reset_params()
-
-    @staticmethod
-    def weight_init(m):
-        if (isinstance(m, nn.Conv3d)):
-            # todo: change it to kaiming initialization
-            nn.init.kaiming_normal(m.weight)
-            nn.init.constant(m.bias, 0)
-
-    def reset_params(self):
-        for i, m in enumerate(self.modules()):
-            self.weight_init(m)
-
-    def forward(self, x):
-        x = self.cnn1(x)
-        x = self.cnn2(x)
-        x = self.cnn3(x)
-        out = self.cnn4(x)
-        return out
-
-    def save(self,epoch):
-        torch.save(self.state_dict(),"featureLearner"+'_'+str(epoch)+'.pt')
-
-
-class UnetGenerator_3d(nn.Module):
-
-    def __init__(self, in_dim, out_dim, num_filter):
-        super(UnetGenerator_3d, self).__init__()
-        self.in_dim = in_dim
-        self.out_dim = out_dim
-        self.num_filter = num_filter
-        act_fn = nn.ReLU()
-
-        print("\n------Initiating U-Net------\n")
-
-        self.down_1 = conv_block_2_3d(self.in_dim, self.num_filter, act_fn)
-        self.pool_1 = maxpool_3d()
-        self.down_2 = conv_block_2_3d(self.num_filter, self.num_filter * 2, act_fn)
-        self.pool_2 = maxpool_3d()
-        self.down_3 = conv_block_2_3d(self.num_filter * 2, self.num_filter * 4, act_fn)
-        self.pool_3 = maxpool_3d()
-
-        self.bridge = conv_block_2_3d(self.num_filter * 4, self.num_filter * 8, act_fn)
-
-        self.trans_1 = conv_trans_block_3d(self.num_filter * 8, self.num_filter * 8, act_fn)
-        self.up_1 = conv_block_3_3d(self.num_filter * 12, self.num_filter * 4, act_fn)
-        self.trans_2 = conv_trans_block_3d(self.num_filter * 4, self.num_filter * 4, act_fn)
-        self.up_2 = conv_block_3_3d(self.num_filter * 6, self.num_filter * 2, act_fn)
-        self.trans_3 = conv_trans_block_3d(self.num_filter * 2, self.num_filter * 2, act_fn)
-        self.up_3 = conv_block_3_3d(self.num_filter * 3, self.num_filter * 1, act_fn)
-
-        self.out = conv_block_4_3d(self.num_filter, out_dim, nn.LogSoftmax())
-        self.reset_params()
-
-    @staticmethod
-    def weight_init(m):
-        if (isinstance(m, nn.Conv3d) or isinstance(m, nn.ConvTranspose3d)):
-            nn.init.xavier_normal(m.weight)
-            nn.init.constant(m.bias, 0)
-
-    def reset_params(self):
-        for i, m in enumerate(self.modules()):
-            self.weight_init(m)
-
-    def forward(self, x):
-        down_1 = self.down_1(x)
-        pool_1 = self.pool_1(down_1)
-        down_2 = self.down_2(pool_1)
-        pool_2 = self.pool_2(down_2)
-        down_3 = self.down_3(pool_2)
-        pool_3 = self.pool_3(down_3)
-
-        bridge = self.bridge(pool_3)
-
-        trans_1 = self.trans_1(bridge)
-        concat_1 = torch.cat([trans_1, down_3], dim=1)
-        up_1 = self.up_1(concat_1)
-        trans_2 = self.trans_2(up_1)
-        concat_2 = torch.cat([trans_2, down_2], dim=1)
-        up_2 = self.up_2(concat_2)
-        trans_3 = self.trans_3(up_2)
-        concat_3 = torch.cat([trans_3, down_1], dim=1)
-        up_3 = self.up_3(concat_3)
-        out = self.out(up_3)
-
-        return out
-
-def get_data(path):
-    heart = sitk.ReadImage(path)
-    heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
-    return heartArray
-
-def load_Directory(is_train):
-    #read file with train data path
-    if is_train:
-        file = open(ROOT_DIR + trainFileName, "r")
-    #read file with test data path
-    else:
-        file = open(ROOT_DIR + testFileName, "r")
-
-    dirnames = file.readlines()
-    data_directory = [x.strip() for x in dirnames]
-    if is_train:
-        data_directory = data_directory[:args.num_train]
-    else:
-        data_directory = data_directory[:args.num_dev]
-    return data_directory
-
-
-def abstract_feature(image):
-    #print(image.shape)
-
-    feature = np.zeros((2,256,256,256))
-    #feature[0] = image
-    #feature[1] = image
-    #return feature
-    with torch.no_grad():
-        feature = fl_model(torch.tensor([image]).to(device))
-    return feature[0]
-
-# original point is put at the front of result
-def find_neighbor(image, point, feature):
-    diff = image.transpose(1,2,3,0)-feature
-    diff = (diff*diff).sum(axis=3).reshape(-1)
-    points = np.argpartition(diff,args.KNN)[:args.KNN]
-    res = []
-    res.append(point)
-    for item in points:
-        res.append([item//65536,(item%65536)//256,item%256])
-        #assert(item == (item//65536)*256*256+((item%65536)//256)*256+item%256)
-    del diff
-    del points
-    return res
 
 class BrainImageDataset(Dataset):
     def __init__(self, dirList):
@@ -278,6 +62,32 @@ class BrainImageDataset(Dataset):
 
     def __len__(self):
         return len(self.data)
+
+
+def abstract_feature(image):
+    #print(image.shape)
+
+    feature = np.zeros((2,256,256,256))
+    #feature[0] = image
+    #feature[1] = image
+    #return feature
+    with torch.no_grad():
+        feature = fl_model(torch.tensor([image]).to(device))
+    return feature[0]
+
+# original point is put at the front of result
+def find_neighbor(image, point, feature):
+    diff = image.transpose(1,2,3,0)-feature
+    diff = (diff*diff).sum(axis=3).reshape(-1)
+    points = np.argpartition(diff,args.KNN)[:args.KNN]
+    res = []
+    res.append(point)
+    for item in points:
+        res.append([item//65536,(item%65536)//256,item%256])
+        #assert(item == (item//65536)*256*256+((item%65536)//256)*256+item%256)
+    del diff
+    del points
+    return res
 
 
 def get_loss(dl, model):
@@ -373,20 +183,6 @@ def get_dice_score(dl, model):
 
     return np.mean(score)
 
-
-def value2label(x):
-    return label_map[x]
-
-def get_label_map():
-    label_list = [0, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13,
-                  14, 15, 16, 17, 18, 24, 26, 28, 30,
-                  31, 41, 42, 43, 44, 46, 47, 49, 50,
-                  51, 52, 53, 54, 58, 60, 62, 63, 72,
-                  77, 80, 85, 251, 252, 253, 254, 255]
-    label_map = {}
-    for i in range(len(label_list)):
-        label_map[label_list[i]] = i
-    return label_map, label_list
 
 def get_KNN_landmark():
     crop_index = [35, 216, 41, 192, 53, 204]

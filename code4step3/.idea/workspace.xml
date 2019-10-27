@@ -3,6 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="e688956d-a1a9-4700-b339-28bcfdecc0c4" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/featureLearner.py" beforeDir="false" afterPath="$PROJECT_DIR$/featureLearner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main3D.py" beforeDir="false" afterPath="$PROJECT_DIR$/main3D.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main3D_with_embedding.py" beforeDir="false" afterPath="$PROJECT_DIR$/main3D_with_embedding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main3D_with_embedding_old.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/warmup_code/registration.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,37 +21,84 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model_util.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="380">
+              <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/unet_model.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="57">
+              <caret line="3" selection-start-line="3" selection-end-line="3" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/unet_data_loader_util.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-782">
+              <caret line="14" column="37" selection-start-line="14" selection-start-column="37" selection-end-line="14" selection-end-column="37" />
+              <folding>
+                <element signature="e#0#24#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/main3D.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="220">
+              <caret line="158" column="35" selection-start-line="158" selection-start-column="24" selection-end-line="158" selection-end-column="37" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/feature_learner_model.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-146">
+              <caret line="54" column="24" selection-start-line="54" selection-start-column="6" selection-end-line="54" selection-end-column="24" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/featureLearner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="220">
-              <caret line="173" column="26" selection-start-line="173" selection-start-column="24" selection-end-line="173" selection-end-column="26" />
+            <state relative-caret-position="301">
+              <caret line="407" column="17" selection-start-line="407" selection-start-column="17" selection-end-line="407" selection-end-column="17" />
               <folding>
-                <element signature="e#0#10#0" expanded="true" />
+                <element signature="e#0#11#0" expanded="true" />
+                <element signature="e#9281#10838#0" />
+                <element signature="e#10878#17585#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/visualize_loss.py">
+        <entry file="file://$PROJECT_DIR$/feature_learner_data_loader_util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="228">
-              <caret line="12" column="17" selection-start-line="12" selection-start-column="17" selection-end-line="12" selection-end-column="17" />
+            <state relative-caret-position="415">
+              <caret line="80" column="10" selection-start-line="80" selection-start-column="10" selection-end-line="80" selection-end-column="10" />
               <folding>
-                <element signature="e#0#18#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plot_reward.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="76">
-              <caret line="4" column="15" selection-start-line="4" selection-start-column="15" selection-end-line="4" selection-end-column="15" />
-              <folding>
-                <element signature="e#0#31#0" expanded="true" />
+                <element signature="e#0#9#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -56,8 +107,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main3D_with_embedding.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-5580">
-              <caret line="218" column="25" selection-start-line="218" selection-start-column="25" selection-end-line="218" selection-end-column="25" />
+            <state relative-caret-position="1830">
+              <caret line="279" column="12" selection-start-line="279" selection-start-column="4" selection-end-line="279" selection-end-column="12" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -69,22 +120,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>max</find>
+      <find>conv_block_3_3d</find>
       <find>conv_block_3d</find>
-      <find>loss</find>
+      <find>fl_conv_block_3d</find>
+      <find>conv_block_4_3d</find>
       <find>image</find>
-      <find>exit</find>
-      <find>64</find>
-      <find>KNN</find>
-      <find>args.KNN</find>
-      <find>criterion</find>
-      <find>margin</find>
-      <find>print</find>
-      <find>4</find>
-      <find>positive_distance</find>
-      <find>pos_dis</find>
-      <find>r</find>
-      <find>16</find>
+      <find>UnetGenerator_3d</find>
+      <find>load_pairs</find>
+      <find>register_pairs</find>
+      <find>testFileName</find>
+      <find>trainFileName</find>
+      <find>Image</find>
+      <find>ROOT_DIR</find>
+      <find>save_sample_result</find>
+      <find>flatten_probas</find>
+      <find>lovasz_softmax_flat</find>
+      <find>isnan</find>
+      <find>mean</find>
+      <find>binary_dice_score</find>
+      <find>binary_vector</find>
+      <find>point_redirection</find>
+      <find>ignore_nan</find>
+      <find>featureLearner</find>
+      <find>abstract_feature</find>
+      <find>BrainImageDataset</find>
+      <find>load_Directory</find>
+      <find>label_list</find>
+      <find>get_label_map</find>
+      <find>value2label</find>
+      <find>fix_name</find>
+      <find>get_data</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -94,8 +159,16 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/plot_reward.py" />
-        <option value="$PROJECT_DIR$/main3D_with_embedding.py" />
+        <option value="$PROJECT_DIR$/gpu_moniter.py" />
+        <option value="$PROJECT_DIR$/data_loader_util.py" />
+        <option value="$PROJECT_DIR$/feature_learner_data_loader_util.py" />
+        <option value="$PROJECT_DIR$/model_util.py" />
         <option value="$PROJECT_DIR$/featureLearner.py" />
+        <option value="$PROJECT_DIR$/unet_model.py" />
+        <option value="$PROJECT_DIR$/feature_learner_model.py" />
+        <option value="$PROJECT_DIR$/main3D.py" />
+        <option value="$PROJECT_DIR$/unet_data_loader_util.py" />
+        <option value="$PROJECT_DIR$/main3D_with_embedding.py" />
       </list>
     </option>
   </component>
@@ -233,18 +306,18 @@
       <updated>1571443704817</updated>
       <workItem from="1571443706037" duration="10141000" />
       <workItem from="1571510819337" duration="5199000" />
-      <workItem from="1572111195609" duration="6972000" />
+      <workItem from="1572111195609" duration="13234000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="22312000" />
+    <option name="totallyTimeSpent" value="28574000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="829" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19098713" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19098713" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -371,10 +444,87 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/gpu_moniter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="304">
+          <caret line="16" column="4" selection-start-line="16" selection-start-column="4" selection-end-line="16" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_loader_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="342">
+          <caret line="18" column="51" selection-start-line="18" selection-start-column="43" selection-end-line="18" selection-end-column="51" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/unet_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="57">
+          <caret line="3" selection-start-line="3" selection-end-line="3" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/feature_learner_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-146">
+          <caret line="54" column="24" selection-start-line="54" selection-start-column="6" selection-end-line="54" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="380">
+          <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main3D.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="220">
+          <caret line="158" column="35" selection-start-line="158" selection-start-column="24" selection-end-line="158" selection-end-column="37" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/unet_data_loader_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-782">
+          <caret line="14" column="37" selection-start-line="14" selection-start-column="37" selection-end-line="14" selection-end-column="37" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main3D_with_embedding.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-5580">
-          <caret line="218" column="25" selection-start-line="218" selection-start-column="25" selection-end-line="218" selection-end-column="25" />
+        <state relative-caret-position="1830">
+          <caret line="279" column="12" selection-start-line="279" selection-start-column="4" selection-end-line="279" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/feature_learner_data_loader_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="415">
+          <caret line="80" column="10" selection-start-line="80" selection-start-column="10" selection-end-line="80" selection-end-column="10" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -383,10 +533,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/featureLearner.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="173" column="26" selection-start-line="173" selection-start-column="24" selection-end-line="173" selection-end-column="26" />
+        <state relative-caret-position="301">
+          <caret line="407" column="17" selection-start-line="407" selection-start-column="17" selection-end-line="407" selection-end-column="17" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#11#0" expanded="true" />
+            <element signature="e#9281#10838#0" />
+            <element signature="e#10878#17585#0" />
           </folding>
         </state>
       </provider>

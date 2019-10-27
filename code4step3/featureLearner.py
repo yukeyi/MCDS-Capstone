@@ -1,121 +1,18 @@
-import cv2
-import numpy as np
-import os
 import copy
-import SimpleITK as sitk
 import random
-from collections import defaultdict
 import time
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data.dataset import Dataset
-from scipy import spatial
 import argparse
-import pandas as pd
-import pickle as pkl
-import json
-import sys
-from pynvml import *
 from torchsummary import summary
-# explore parameter margin: for 6 layer CNN use 1.5, for dense net use 6.0
-
-# following three functions are used for checking gpu usage
-def getGpuUtilization(handle):
-    try:
-        util = nvmlDeviceGetUtilizationRates(handle)
-        gpu_util = int(util.gpu)
-    except NVMLError as err:
-        error = handleError(err)
-        gpu_util = error
-    return gpu_util
-
-def getMB(BSize):
-    return BSize / (1024 * 1024)
-
-def get_gpu_info(flag):
-    print(flag)
-    nvmlInit()
-    deviceCount = nvmlDeviceGetCount()
-    data = []
-    for i in range(deviceCount):
-        handle = nvmlDeviceGetHandleByIndex(i)
-        meminfo = nvmlDeviceGetMemoryInfo(handle)
-        gpu_util = getGpuUtilization(handle)
-        one = {"gpuUtil": gpu_util}
-        one["gpuId"] = i
-        one["memTotal"] = getMB(meminfo.total)
-        one["memUsed"] = getMB(meminfo.used)
-        one["memFree"] = getMB(meminfo.total)
-        one["temperature"] = nvmlDeviceGetTemperature(handle, NVML_TEMPERATURE_GPU)
-        data.append(one)
-    data = {"gpuCount": deviceCount, "util": "Mb", "detail": data}
-    print(json.dumps(data))
-
+from feature_learner_model import *
+from feature_learner_data_loader_util import *
+# explore parameter margin: for 6 layer CNN use 0.5, for dense net use 6.0
 
 torch.backends.cudnn.enabled = False
 
-ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
-trainFileName = "trainfiles.txt"
-testFileName = "testfiles.txt"
-os.chdir(ROOT_DIR)
 
-
-register_pairs = {}
-
-class Image:
-    def __init__(self, reg_dir):
-        #self.image_list = []
-        #self.aseg_list = []
-        self.reg_dir = reg_dir
-        self.parse_images()
-        self.parse_registration()
-        #self.make_xarray()
-        
-    def parse_images(self):
-        images = self.reg_dir.split("-")
-        assert(len(images)==2)
-        self.moving_image = sitk.ReadImage(ROOT_DIR + "Brain2NIFI/" + images[1] + "/norm.nii")
-
-        
-    def parse_registration(self):
-        param0=sitk.ReadParameterFile("BrainParameterMaps/"+self.reg_dir+"/TransformParameters.0.txt")
-        param1=sitk.ReadParameterFile("BrainParameterMaps/"+self.reg_dir+"/TransformParameters.1.txt")
-        param2=sitk.ReadParameterFile("BrainParameterMaps/"+self.reg_dir+"/TransformParameters.2.txt")
-        transformixImageFilter=sitk.TransformixImageFilter()
-        transformixImageFilter.LogToConsoleOff()
-        transformixImageFilter.AddTransformParameterMap(param0)
-        transformixImageFilter.AddTransformParameterMap(param1)
-        transformixImageFilter.AddTransformParameterMap(param2)
-        self.transformixImageFilter=transformixImageFilter
-
-    
-    def register_points(self, test_file='test.pts'):
-        if os.path.exists('outputpoints.txt'):
-            os.remove('outputpoints.txt')
-        self.transformixImageFilter.SetFixedPointSetFileName(test_file)
-        self.transformixImageFilter.SetMovingImage(self.moving_image)
-        self.transformixImageFilter.Execute()
-
-def get_data(path):
-    heart = sitk.ReadImage(path)
-    heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
-    return heartArray
-
-def conv_block_3d(in_dim,out_dim,act_fn,dilation,is_final=False):
-    if(is_final):
-        model = nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation)
-    else:
-        model = nn.Sequential(
-            nn.Conv3d(in_dim,out_dim, kernel_size=3, stride=1, padding=dilation, dilation=dilation),
-            act_fn,
-        )
-    return model
-
-def maxpool_3d():
-    pool = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)
-    return pool
 
 def get_output_points(filename='outputpoints.txt'):
     fr = open(filename, 'r')
@@ -149,70 +46,6 @@ def find_points(point_list, image):
     transformed_points = get_output_points()
     return transformed_points
 
-class BrainImageDataset(Dataset):
-    def __init__(self, dirList):
-        self.data = dirList
-
-    def __getitem__(self, index):
-
-        fix = self.data[index]
-        fixed_image_array = get_data(ROOT_DIR + "Brain2NIFI/" + fix + "/norm.nii")
-        moving = register_pairs[fix]
-        moving_image_array = get_data(ROOT_DIR + "Brain2NIFI/" + moving + "/norm.nii")
-        return (fixed_image_array, moving_image_array, fix, moving)
-
-    def __len__(self):
-        return len(self.data)
-
-class featureLearner(nn.Module):
-    def __init__(self):
-        super(featureLearner, self).__init__()
-
-        self.in_dim = 1
-        self.mid1_dim = 8
-        self.mid2_dim = 8
-        self.mid3_dim = 16
-        self.mid4_dim = 16
-        self.mid5_dim = 32
-        self.out_dim = 32
-        #act_fn = nn.LeakyReLU()
-        act_fn = nn.ReLU()
-
-        print("\n------Initiating Network------\n")
-
-        self.cnn1 = conv_block_3d(self.in_dim, self.mid1_dim, act_fn, 1)
-        self.cnn2 = conv_block_3d(self.mid1_dim, self.mid2_dim, act_fn, 1)
-        self.cnn3 = conv_block_3d(self.mid2_dim, self.mid3_dim, act_fn, 2)
-        self.cnn4 = conv_block_3d(self.mid3_dim, self.mid4_dim, act_fn, 2)
-        self.cnn5 = conv_block_3d(self.mid4_dim, self.mid5_dim, act_fn, 4)
-        self.cnn6 = conv_block_3d(self.mid5_dim, self.out_dim, act_fn, 8, True)
-        self.reset_params()
-
-    @staticmethod
-    def weight_init(m):
-        if (isinstance(m, nn.Conv3d)):
-            # todo: change it to kaiming initialization
-            nn.init.kaiming_normal(m.weight)
-            nn.init.constant(m.bias, 0)
-
-    def reset_params(self):
-        for i, m in enumerate(self.modules()):
-            self.weight_init(m)
-
-    def forward(self, x):
-        x = self.cnn1(x)
-        x = self.cnn2(x)
-        x = self.cnn3(x)
-        x = self.cnn4(x)
-        x = self.cnn5(x)
-        out = self.cnn6(x)
-        #get_gpu_info(2)
-        return out
-
-    def save(self,epoch):
-        torch.save(self.state_dict(),"featureLearner"+'_'+str(epoch)+'.pt')
-
-
 
 def point_redirection(x, y, z):
     # Todo: fix this
@@ -221,29 +54,6 @@ def point_redirection(x, y, z):
     z = z % crop_half_size[2]
     return x, y, z
 
-def load_Directory(is_train):
-    #read file with train data path
-    if is_train:
-        file = open(ROOT_DIR + trainFileName, "r")
-    #read file with test data path
-    else:
-        file = open(ROOT_DIR + testFileName, "r")
-
-    dirnames = file.readlines()
-    data_directory = [x.strip() for x in dirnames]
-
-    dirList = []
-    for i in data_directory:
-        if i in register_pairs:
-            dirList.append(i)
-    return dirList
-
-def load_pairs():
-    for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMaps"):
-        for pairname in directories:
-            images = pairname.split("-")
-            assert(len(images)==2)
-            register_pairs[images[0]] = images[1]
 
 
 def right_difficulty(negative_point, fixed_point):
@@ -377,9 +187,53 @@ class CorrespondenceContrastiveLoss(nn.Module):
         #exit()
         return loss, pos_dis, neg_dis
 
-crop_index = [25, 225, 28, 204, 48, 208]
-crop_size = [200, 176, 160]
-crop_half_size = [100, 88, 80]
+def find_boundary(fixed_image_array, moving_image_array):
+    # for finding the boundary, which is [11, 228, 25, 221, 47, 209]
+    # max 100 boundary, is [25, 221, 28, 205, 48, 209]
+    # for now we use [25, 224, 28, 203, 48, 207]
+    index_range = [255, 0, 255, 0, 255, 0]
+
+    for image in [fixed_image_array, moving_image_array]:
+        index = []
+        image = image[0][0]
+        dim = image.sum(dim=[1, 2])
+        for i in range(0,256):
+            if(dim[i] != 0):
+                index.append(i)
+                break
+        for i in range(255,-1,-1):
+            if(dim[i] != 0):
+                index.append(i)
+                break
+        dim = image.sum(dim=[0, 2])
+        for i in range(0,256):
+            if(dim[i] != 0):
+                index.append(i)
+                break
+        for i in range(255,-1,-1):
+            if(dim[i] != 0):
+                index.append(i)
+                break
+        dim = image.sum(dim=[0, 1])
+        for i in range(0,256):
+            if(dim[i] != 0):
+                index.append(i)
+                break
+        for i in range(255,-1,-1):
+            if(dim[i] != 0):
+                index.append(i)
+                break
+        #print(index)
+        old_index_range = copy.deepcopy(index_range)
+        index_range[0] = min(index_range[0], index[0])
+        index_range[1] = max(index_range[1], index[1])
+        index_range[2] = min(index_range[2], index[2])
+        index_range[3] = max(index_range[3], index[3])
+        index_range[4] = min(index_range[4], index[4])
+        index_range[5] = max(index_range[5], index[5])
+        if(old_index_range != index_range):
+            print(index_range)
+
 
 def train(args, model, device, loader, optimizer):
 
@@ -394,9 +248,6 @@ def train(args, model, device, loader, optimizer):
     positive_distance_history = []
     negative_distance_history = []
 
-
-    #index_range = [255,0,255,0,255,0]
-
     for epoch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
         #print(fix, type(fix))
         #print(moving, type(moving))
@@ -404,53 +255,6 @@ def train(args, model, device, loader, optimizer):
         print(epoch_idx)
         positive_distance = []
         negative_distance = []
-
-        '''
-        # for finding the boundary, which is [11, 228, 25, 221, 47, 209]
-        # max 100 boundary, is [25, 221, 28, 205, 48, 209]
-        # for now we use [25, 224, 28, 203, 48, 207]
-        for image in [fixed_image_array, moving_image_array]:
-            index = []
-            image = image[0][0]
-            dim = image.sum(dim=[1, 2])
-            for i in range(0,256):
-                if(dim[i] != 0):
-                    index.append(i)
-                    break
-            for i in range(255,-1,-1):
-                if(dim[i] != 0):
-                    index.append(i)
-                    break
-            dim = image.sum(dim=[0, 2])
-            for i in range(0,256):
-                if(dim[i] != 0):
-                    index.append(i)
-                    break
-            for i in range(255,-1,-1):
-                if(dim[i] != 0):
-                    index.append(i)
-                    break
-            dim = image.sum(dim=[0, 1])
-            for i in range(0,256):
-                if(dim[i] != 0):
-                    index.append(i)
-                    break
-            for i in range(255,-1,-1):
-                if(dim[i] != 0):
-                    index.append(i)
-                    break
-            #print(index)
-            old_index_range = copy.deepcopy(index_range)
-            index_range[0] = min(index_range[0], index[0])
-            index_range[1] = max(index_range[1], index[1])
-            index_range[2] = min(index_range[2], index[2])
-            index_range[3] = max(index_range[3], index[3])
-            index_range[4] = min(index_range[4], index[4])
-            index_range[5] = max(index_range[5], index[5])
-            if(old_index_range != index_range):
-                print(index_range)
-        continue
-        '''
 
         print("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
         if(os.path.exists("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
@@ -474,8 +278,6 @@ def train(args, model, device, loader, optimizer):
 
         #for item in point_list[0]:
         #    assert(fixed_image_array[0][0][item[0]][item[1]][item[2]].item() != 0.0)
-
-        #continue
 
         # crop image and triple points here
         fixed_image_array = fixed_image_array[:, :, crop_index[0]:crop_index[1], crop_index[2]:crop_index[3],
@@ -593,7 +395,9 @@ parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
 
 input_args = parser.parse_args()
-
+crop_index = [25, 225, 28, 204, 48, 208]
+crop_size = [200, 176, 160]
+crop_half_size = [100, 88, 80]
 
 torch.manual_seed(1)
 use_cuda = torch.cuda.is_available()
@@ -601,14 +405,14 @@ device = torch.device("cuda" if use_cuda else "cpu")
 print("Using device: "+str(device))
 
 #store all pairs of registration
-load_pairs()
+register_pairs = load_pairs()
 
 model = featureLearner().to(device)
 summary(model, input_size=(1, 100, 88, 80))
 print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)
 
-train_dataset = BrainImageDataset(load_Directory(True))
+train_dataset = BrainImageDataset(load_Directory(True, register_pairs), register_pairs)
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=1, shuffle=True)
 
 train(input_args, model, device, train_loader, optimizer)

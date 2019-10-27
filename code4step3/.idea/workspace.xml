@@ -20,8 +20,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/featureLearner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="334">
-              <caret line="62" lean-forward="true" selection-start-line="62" selection-end-line="62" />
+            <state relative-caret-position="220">
+              <caret line="173" column="26" selection-start-line="173" selection-start-column="24" selection-end-line="173" selection-end-column="26" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -80,6 +80,11 @@
       <find>criterion</find>
       <find>margin</find>
       <find>print</find>
+      <find>4</find>
+      <find>positive_distance</find>
+      <find>pos_dis</find>
+      <find>r</find>
+      <find>16</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -228,12 +233,12 @@
       <updated>1571443704817</updated>
       <workItem from="1571443706037" duration="10141000" />
       <workItem from="1571510819337" duration="5199000" />
-      <workItem from="1572111195609" duration="4266000" />
+      <workItem from="1572111195609" duration="6972000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="19606000" />
+    <option name="totallyTimeSpent" value="22312000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="829" extended-state="6" />
@@ -378,8 +383,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/featureLearner.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="334">
-          <caret line="62" lean-forward="true" selection-start-line="62" selection-end-line="62" />
+        <state relative-caret-position="220">
+          <caret line="173" column="26" selection-start-line="173" selection-start-column="24" selection-end-line="173" selection-end-column="26" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>

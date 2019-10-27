@@ -169,12 +169,12 @@ class featureLearner(nn.Module):
         super(featureLearner, self).__init__()
 
         self.in_dim = 1
-        self.mid1_dim = 16
-        self.mid2_dim = 16
-        self.mid3_dim = 32
-        self.mid4_dim = 32
-        self.mid5_dim = 64
-        self.out_dim = 64
+        self.mid1_dim = 8
+        self.mid2_dim = 8
+        self.mid3_dim = 16
+        self.mid4_dim = 16
+        self.mid5_dim = 32
+        self.out_dim = 32
         #act_fn = nn.LeakyReLU()
         act_fn = nn.ReLU()
 
@@ -246,6 +246,14 @@ def load_pairs():
             register_pairs[images[0]] = images[1]
 
 
+def right_difficulty(negative_point, fixed_point):
+    if(abs(negative_point[0]-fixed_point[0]) < input_args.distanceMargin
+            and abs(negative_point[1]-fixed_point[1]) < input_args.distanceMargin
+            and abs(negative_point[2]-fixed_point[2]) < input_args.distanceMargin):
+        return (input_args.hardMode == 1)
+    return (input_args.hardMode == 0)
+
+
 def find_postive_negative_points(image, fixed_image_array, moving_image_array, Npoints):
 
     point_list = []
@@ -268,7 +276,7 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
                         y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
                         z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
                         negative_point = np.array([x,y,z]).astype('int')
-                        if(moving_image_array[0][0][x][y][z] != 0):
+                        if(right_difficulty(negative_point, fixed_point) and moving_image_array[0][0][x][y][z] != 0):
                             break
                     point_list.append(fixed_point)
                     negative_point_list.append(negative_point)
@@ -542,12 +550,15 @@ def train(args, model, device, loader, optimizer):
         loss_history.append(np.array(losses).mean())
         #print(positive_distance)
         positive_distance_history.append(np.array(positive_distance).mean())
+        positive_distance_history.append(np.array(positive_distance).std())
         negative_distance_history.append(np.array(negative_distance).mean())
+        negative_distance_history.append(np.array(negative_distance).std())
         if(len(loss_history) % args.loss_save_interval == 0):
             np.save(save_loss_filename,np.array(loss_history))
             np.save(save_dis_filename, np.array([positive_distance_history,negative_distance_history]))
         if(len(loss_history) % args.model_save_interval == 0):
             torch.save(model, save_model_filename+str(epoch_idx)+'.pt')
+
 
 
 parser = argparse.ArgumentParser(description='PyTorch')
@@ -561,6 +572,11 @@ parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
 parser.add_argument('--margin', type=float, default=0.5, metavar='LR',
                     help='margin')
+parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
+                    help='distanceMargin')
+parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
+                    help='If hard Mode is set as 1, we only use hard negative example,'
+                         ' or we only use easy negative example')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
 parser.add_argument('--Npoints', type=int, default=10000, metavar='LR',

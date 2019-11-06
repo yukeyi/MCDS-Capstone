@@ -3,8 +3,8 @@ import numpy as np
 import SimpleITK as sitk
 from torch.utils.data.dataset import Dataset
 
-#ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
-ROOT_DIR = "/Users/yukeyi/Desktop/"
+ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
+#ROOT_DIR = "/Users/yukeyi/Desktop/"
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 os.chdir(ROOT_DIR)

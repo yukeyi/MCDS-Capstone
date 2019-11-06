@@ -8,6 +8,7 @@ import argparse
 from torchsummary import summary
 from feature_learner_model import *
 from feature_learner_data_loader_util import *
+from sift import get_sift_feature
 # explore parameter margin: for 6 layer CNN use 0.5, for dense net use 6.0
 
 torch.backends.cudnn.enabled = False
@@ -121,7 +122,6 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
 
 
 def check_boundary_new(a,b,c, x_shard, y_shard, z_shard):
-    # Todo: fix that
 	return (a>=crop_index[0]+x_shard*crop_half_size[0] and a<crop_index[0]+crop_half_size[0]+x_shard*crop_half_size[0]) \
            and (b>=crop_index[2]+y_shard*crop_half_size[1] and b<crop_index[2]+crop_half_size[1]+y_shard*crop_half_size[1])\
            and (c>=crop_index[4]+z_shard*crop_half_size[2] and c<crop_index[4]+crop_half_size[2]+z_shard*crop_half_size[2])
@@ -252,6 +252,7 @@ def train(args, model, device, loader, optimizer):
         #print(fix, type(fix))
         #print(moving, type(moving))
         # if we only want to generate points
+        get_sift_feature(fixed_image_array[0][0])
         print(epoch_idx)
         positive_distance = []
         negative_distance = []

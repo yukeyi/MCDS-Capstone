@@ -23,7 +23,7 @@ def get_label_map():
 
 def get_data(path):
     heart = sitk.ReadImage(path)
-    heartArray = np.array([sitk.GetArrayFromImage(heart)]) / 256
+    heartArray = np.array([sitk.GetArrayFromImage(heart)])
     return heartArray
 
 def load_Directory(is_train, args):
@@ -51,8 +51,8 @@ class BrainImageDataset(Dataset):
 
         name = self.data[index]
         try:
-            image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32")
-            target = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/aseg.nii")*256
+            image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32") / 256
+            target = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/aseg.nii")
         except:
             return (np.array([]), np.array([]))
         # two ways to convert from real number value to label

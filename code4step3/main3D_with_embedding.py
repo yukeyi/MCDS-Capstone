@@ -31,8 +31,8 @@ class BrainImageDataset(Dataset):
 
         name = self.data[index]
         try:
-            image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32")
-            target = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/aseg.nii")*256
+            image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32") / 256
+            target = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/aseg.nii")
         except:
             return (np.array([]), np.array([]))
 
@@ -244,9 +244,9 @@ writer = SummaryWriter(timeStr+'/log')
 save_model_filename = timeStr + "/model"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-train_dataset = BrainImageDataset(load_Directory(True))
+train_dataset = BrainImageDataset(load_Directory(True, args))
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size, shuffle=True)
-dev_dataset = BrainImageDataset(load_Directory(False))
+dev_dataset = BrainImageDataset(load_Directory(False, args))
 dev_loader = torch.utils.data.DataLoader(dev_dataset,batch_size=args.test_batch_size, shuffle=False)
 
 model = UnetGenerator_3d(8, args.classes, args.channel_base)

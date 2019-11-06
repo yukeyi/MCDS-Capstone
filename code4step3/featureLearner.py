@@ -55,9 +55,9 @@ def find_points(point_list, image):
 
 
 def point_redirection(x, y, z, x_shard,y_shard,z_shard):
-    assert (x - x_shard * crop_half_size[0] == x % crop_half_size[0])
-    assert (y - y_shard * crop_half_size[1] == y % crop_half_size[1])
-    assert (z - z_shard * crop_half_size[2] == z % crop_half_size[2])
+    #assert (x - x_shard * crop_half_size[0] == x % crop_half_size[0])
+    #assert (y - y_shard * crop_half_size[1] == y % crop_half_size[1])
+    #assert (z - z_shard * crop_half_size[2] == z % crop_half_size[2])
     x = x % crop_half_size[0]
     y = y % crop_half_size[1]
     z = z % crop_half_size[2]
@@ -120,12 +120,16 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
                     break
             # Here is a huge bug in previous code
             cnt += 1
-        point_list[i] = [point_list[i][index] for index in good_list]
-        positive_point_list[i] = [positive_point_list[i][index] for index in good_list]
-        negative_point_list[i] = [negative_point_list[i][index] for index in good_list]
 
         if(len(good_list) != Npoints//8):
             print("only part data generated : "+str(len(good_list)))
+            while(len(good_list) < Npoints//8):
+                good_list *= 2
+            good_list = good_list[:Npoints//8]
+
+        point_list[i] = [point_list[i][index] for index in good_list]
+        positive_point_list[i] = [positive_point_list[i][index] for index in good_list]
+        negative_point_list[i] = [negative_point_list[i][index] for index in good_list]
 
     return point_list, positive_point_list, negative_point_list
 
@@ -135,6 +139,17 @@ def check_boundary_new(a,b,c, x_shard, y_shard, z_shard):
            and (b>=crop_index[2]+y_shard*crop_half_size[1] and b<crop_index[2]+crop_half_size[1]+y_shard*crop_half_size[1])\
            and (c>=crop_index[4]+z_shard*crop_half_size[2] and c<crop_index[4]+crop_half_size[2]+z_shard*crop_half_size[2])
 
+
+class SiftLoss(nn.Module):
+
+    def __init__(self):
+        super(SiftLoss, self).__init__()
+
+    def forward(self, image, points, feature):
+        loss = 0.0
+        for i in range(len(points)):
+            loss += (image[0][:,points[i][0],points[i][1],points[i][2]] - torch.tensor(feature[i]/200).float().cuda()).pow(2).sum()
+        return loss
 
 class CorrespondenceContrastiveLoss(nn.Module):
     """
@@ -148,7 +163,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
         self.batch = batch
 
     def forward(self, fix_image_feature, moving_image_feature, fixed_points, positive_points, negative_points,x_shard,y_shard,z_shard):
-        loss = 0
+        loss = 0.0
         cnt = 0
         # positive pairs
         pos_dis = []
@@ -247,6 +262,7 @@ def train(args, model, device, loader, optimizer):
 
     model.train()
     criterion = CorrespondenceContrastiveLoss(args.margin, args.batch)
+    criterion_sift = SiftLoss()
     timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
     os.mkdir(timeStr)
     save_loss_filename = timeStr+"/loss.npy"
@@ -262,7 +278,40 @@ def train(args, model, device, loader, optimizer):
         print("---------------------------------------------------------------------")
         for batch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
             # if we only want to generate points
-            #get_sift_feature(fixed_image_array[0][0])
+            if(args.sift == 1):
+                losses = []
+                for input_image in [fixed_image_array, moving_image_array]:
+                    points, features = get_sift_feature(input_image[0][0])
+                    for x_shard in range(2):
+                        for y_shard in range(2):
+                            for z_shard in range(2):
+
+                                if(len(points[4 * x_shard + 2 * y_shard + z_shard]) == 0):
+                                    continue
+                                part_input_image = input_image[:, :,
+                                                   crop_index[0]+x_shard * crop_half_size[0]:crop_index[0]+(x_shard + 1) * crop_half_size[0],
+                                                   crop_index[2]+y_shard * crop_half_size[1]:crop_index[2]+(y_shard + 1) * crop_half_size[1],
+                                                   crop_index[4]+z_shard * crop_half_size[2]:crop_index[4]+(z_shard + 1) * crop_half_size[2]]
+
+                                part_input_image = part_input_image.to(device)
+
+                                optimizer.zero_grad()
+                                part_input_feature = model(part_input_image.float())
+                                loss = criterion_sift(part_input_feature,
+                                                        points[4 * x_shard + 2 * y_shard + z_shard],
+                                                        features[4 * x_shard + 2 * y_shard + z_shard])
+
+                                loss.backward()
+                                optimizer.step()
+                                losses.append(loss.item())
+                print("loss ",np.array(losses).mean())
+                loss_history.append(np.array(losses).mean())
+                if (len(loss_history) % args.loss_save_interval == 0):
+                    np.save(save_loss_filename, np.array(loss_history))
+                if (len(loss_history) % args.model_save_interval == 0):
+                    torch.save(model, save_model_filename + str(batch_idx + epoch_id * 10000) + '.pt')
+                continue
+
             print(batch_idx+epoch_id*10000)
             positive_distance = []
             negative_distance = []
@@ -306,6 +355,7 @@ def train(args, model, device, loader, optimizer):
             negative_point_list[:, :, 1] -= crop_index[2]
             negative_point_list[:, :, 2] -= crop_index[4]
 
+            '''
             # sanity check
             for item in point_list[0]:
                 assert (fixed_image_array[0][0][item[0]][item[1]][item[2]].item() != 0.0)
@@ -321,6 +371,7 @@ def train(args, model, device, loader, optimizer):
                 assert (item[0] < crop_half_size[0])
                 assert (item[1] < crop_half_size[1])
                 assert (item[2] < crop_half_size[2])
+            '''
 
             losses = []
             for x_shard in range(2):
@@ -394,13 +445,15 @@ parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=0.5, metavar='LR',
+parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
                     help='margin')
 parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
                     help='distanceMargin')
 parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
                     help='If hard Mode is set as 1, we only use hard negative example,'
                          ' or we only use easy negative example')
+parser.add_argument('--sift', type=int, default=1, metavar='LR',
+                    help='If sift set as 1, we train the feature learner network using sift feature')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
 parser.add_argument('--Npoints', type=int, default=10000, metavar='LR',

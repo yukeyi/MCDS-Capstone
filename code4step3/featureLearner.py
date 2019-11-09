@@ -163,6 +163,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
         self.batch = batch
 
     def forward(self, fix_image_feature, moving_image_feature, fixed_points, positive_points, negative_points,x_shard,y_shard,z_shard):
+        global input_args
         loss = 0.0
         cnt = 0
         # positive pairs
@@ -174,6 +175,8 @@ class CorrespondenceContrastiveLoss(nn.Module):
             a, b, c = positive_points[i]
             x, y, z = point_redirection(x, y, z,x_shard,y_shard,z_shard)
             a, b, c = point_redirection(a, b, c,x_shard,y_shard,z_shard)
+            if (input_args.check_correspond and i == 0):
+                print(x_shard,y_shard,z_shard,"fix: ",x,y,z,"moving: ",a,b,c)
             distance = (fix_image_feature[0][:,x,y,z] - moving_image_feature[0][:,a,b,c]).pow(2).sum()  # squared distance
             #print(torch.sqrt(distance))
             #print("pos "+str(math.sqrt(distance)))
@@ -380,6 +383,18 @@ def train(args, model, device, loader, optimizer):
 
                         mini_batch = 0
 
+                        if (input_args.check_correspond):
+                            sitk.WriteImage(sitk.GetImageFromArray(fixed_image_array[0, 0,
+                                                x_shard * crop_half_size[0]:(x_shard + 1) * crop_half_size[0],
+                                                y_shard * crop_half_size[1]:(y_shard + 1) * crop_half_size[1],
+                                                z_shard * crop_half_size[2]:(z_shard + 1) * crop_half_size[2]]),
+                                            "".join(fix)+"_"+str(x_shard)+str(y_shard)+str(z_shard)+".nii")
+                            sitk.WriteImage(sitk.GetImageFromArray(moving_image_array[0, 0,
+                                                x_shard * crop_half_size[0]:(x_shard + 1) * crop_half_size[0],
+                                                y_shard * crop_half_size[1]:(y_shard + 1) * crop_half_size[1],
+                                                z_shard * crop_half_size[2]:(z_shard + 1) * crop_half_size[2]]),
+                                            "".join(moving)+"_"+str(x_shard)+str(y_shard)+str(z_shard)+".nii")
+
                         while (1):
                             part_fixed_image_array = fixed_image_array[:, :,
                                                 x_shard * crop_half_size[0]:(x_shard + 1) * crop_half_size[0],
@@ -421,6 +436,8 @@ def train(args, model, device, loader, optimizer):
                             if(mini_batch*args.batch*8 == args.Npoints):
                                 break
 
+            if (input_args.check_correspond):
+                exit()
             print(np.array(losses).mean())
             loss_history.append(np.array(losses).mean())
             #print(positive_distance)
@@ -452,10 +469,12 @@ parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
 parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
                     help='If hard Mode is set as 1, we only use hard negative example,'
                          ' or we only use easy negative example')
-parser.add_argument('--sift', type=int, default=1, metavar='LR',
+parser.add_argument('--sift', type=int, default=0, metavar='LR',
                     help='If sift set as 1, we train the feature learner network using sift feature')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
                     help='epoch')
+parser.add_argument('--check-correspond', type=int, default=0, metavar='LR',
+                    help='check whether points feed into loss function is correct')
 parser.add_argument('--Npoints', type=int, default=10000, metavar='LR',
                     help='number of points for each image')
 parser.add_argument('--batch', type=int, default=250, metavar='LR',
@@ -468,6 +487,8 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
+parser.add_argument('--load-model', type=str, default="2019-11-06-23-56-27/model389.pt", metavar='N',
+                    help='If load-model has a name, use pretrained model')
 
 input_args = parser.parse_args()
 crop_index = [25, 225, 28, 204, 48, 208]
@@ -483,6 +504,10 @@ print("Using device: "+str(device))
 register_pairs = load_pairs()
 
 model = featureLearner().to(device)
+if(input_args.load_model is not None):
+    print("Load model : "+input_args.load_model)
+    model = torch.load(input_args.load_model).to(device)
+
 summary(model, input_size=(1, 100, 88, 80))
 print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)

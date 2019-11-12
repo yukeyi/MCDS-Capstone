@@ -466,7 +466,7 @@ parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
                     help='margin')
 parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
                     help='distanceMargin')
-parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
+parser.add_argument('--hardMode', type=int, default=1, metavar='LR',
                     help='If hard Mode is set as 1, we only use hard negative example,'
                          ' or we only use easy negative example')
 parser.add_argument('--sift', type=int, default=0, metavar='LR',
@@ -487,7 +487,7 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
-parser.add_argument('--load-model', type=str, default="2019-11-06-23-56-27/model389.pt", metavar='N',
+parser.add_argument('--load-model', type=str, default="2019-11-07-23-01-20/model559.pt", metavar='N',
                     help='If load-model has a name, use pretrained model')
 
 input_args = parser.parse_args()

@@ -12,6 +12,8 @@ from unet_model import UnetGenerator_3d
 from unet_data_loader_util import get_data, load_Directory, get_label_map
 from feature_learner_model import featureLearner, featureLearner_old
 
+
+
 try:
     from itertools import  ifilterfalse
 except ImportError: # py3k
@@ -42,7 +44,9 @@ class BrainImageDataset(Dataset):
         label = label[0]
         if(args.KNN > 0 and batch_id % 2 == 0):
             fix_image = copy.deepcopy(image)
-        image = abstract_feature(image)
+        torch.backends.cudnn.enabled = False
+        image = torch.tensor(abstract_feature(image))
+        torch.backends.cudnn.enabled = True
         if(args.KNN > 0):
             if(batch_id % 2 == 0):
                 fix_name = name
@@ -67,13 +71,19 @@ class BrainImageDataset(Dataset):
 def abstract_feature(image):
     #print(image.shape)
 
-    feature = np.zeros((2,256,256,256))
+    #feature = np.zeros((2,256,256,256))
     #feature[0] = image
     #feature[1] = image
     #return feature
+    feature = np.zeros((128,256,256,256))
     with torch.no_grad():
-        feature = fl_model(torch.tensor([image]).to(device))
-    return feature[0]
+        for x in range(2):
+            for y in range(2):
+                for z in range(2):
+                    feature[:,x*128:x*128+128,y*128:y*128+128,z*128:z*128+128] = \
+                        copy.deepcopy(fl_model(torch.tensor([image[:,x*128:x*128+128,y*128:y*128+128,z*128:z*128+128]]).to(device))[0].cpu())
+    #print(feature.shape)
+    return feature
 
 # original point is put at the front of result
 def find_neighbor(image, point, feature):
@@ -99,12 +109,13 @@ def get_loss(dl, model):
         for shard in range(args.shard):
             data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
                            whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
-
-            logsoftmax_output_z = model(data)
+            torch.cuda.empty_cache()
+            logsoftmax_output_z = model(data.cuda().float())
             loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
             #loss = loss.float().mean()
             loss = (loss.float() * (args.augmentation * (target > 0) + 1).float()).mean()
             total_loss += loss.item()
+            print(shard)
 
     model.train()
 
@@ -147,24 +158,6 @@ def binary_dice_score(label, target, classes):
         scores.append(score)
     return scores
 
-
-def get_accuracy(dl, model):
-
-    total_num = 0
-    correct_num = 0
-    slice_depth = 256 // args.shard
-    for whole_data, y in dl:
-        predicted = np.zeros(y.shape)
-        for shard in range(args.shard):
-            X = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device)
-            X = Variable(X).to(device)
-            output = model(X).cpu()
-            output = np.argmax(output.data.numpy(), axis=1)
-            predicted[:, shard * slice_depth:(shard + 1) * slice_depth] = output
-        correct_num += (predicted == y.data.numpy().astype("int64")).sum().item()
-        total_num += y.shape[0]*y.shape[1]*y.shape[2]*y.shape[3]
-    return correct_num/total_num
-
 def get_dice_score(dl, model):
 
     score = []
@@ -172,8 +165,9 @@ def get_dice_score(dl, model):
     for whole_data, y in dl:
         predicted = np.zeros(y.shape)
         for shard in range(args.shard):
+            torch.cuda.empty_cache()
             X = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device)
-            X = Variable(X).to(device)
+            X = Variable(X).to(device).float()
             output = model(X).cpu()
             output = np.argmax(output.data.numpy(),axis=1)
             predicted[:,shard*slice_depth:(shard+1)*slice_depth] = output
@@ -210,7 +204,7 @@ parser.add_argument('--num_train', type=int, default=3000, metavar='N',
                     help='number of data for training')
 parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
-parser.add_argument('--KNN', type=int, default=5, metavar='N',
+parser.add_argument('--KNN', type=int, default=0, metavar='N',
                     help='if KNN is not 0, we generate KNN matching for each image, K is set')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
@@ -218,7 +212,7 @@ parser.add_argument('--augmentation', type=float, default=10.0, metavar='LR',
                     help='weight for lebeled object')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
-parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
+parser.add_argument('--channel-base', type=int, default=32, metavar='CB',
                     help='number of channel for first convolution (default: 8)')
 parser.add_argument('--log-interval', type=int, default=50, metavar='N',
                     help='how many epoches between logging training status')
@@ -226,9 +220,9 @@ parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default=None, metavar='N',
+parser.add_argument('--load-model', type=str, default='2019-11-12-16-17-50/model50.pt', metavar='N',
                     help='If load-model has a name, use pretrained model')
-parser.add_argument('--embedding-model', type=str, default='featureLearningModel.pt', metavar='N',
+parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-14-57/model559.pt', metavar='N',
                     help='pretrained feature learning model')
 args = parser.parse_args()
 
@@ -249,7 +243,7 @@ train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_s
 dev_dataset = BrainImageDataset(load_Directory(False, args))
 dev_loader = torch.utils.data.DataLoader(dev_dataset,batch_size=args.test_batch_size, shuffle=False)
 
-model = UnetGenerator_3d(8, args.classes, args.channel_base)
+model = UnetGenerator_3d(128, args.classes, args.channel_base)
 if(args.load_model is not None):
     print("Load model : "+args.load_model)
     model = torch.load(args.load_model)
@@ -289,6 +283,7 @@ for epoch in range(args.epochs):
     #get_accuracy(dev_loader, model)
     total_loss = 0.0
     for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
+
         if(args.KNN != 0):
             batch_id = batch_idx
             print(batch_idx)
@@ -301,7 +296,8 @@ for epoch in range(args.epochs):
                     data, target = whole_data[:,:,shard*slice_depth:(shard+1)*slice_depth].to(device), \
                                    whole_label[:,shard*slice_depth:(shard+1)*slice_depth].to(device)
 
-                    logsoftmax_output_z = model(data)
+                    torch.cuda.empty_cache()
+                    logsoftmax_output_z = model(data.cuda().float())
                     loss = nn.NLLLoss(reduce=False)(logsoftmax_output_z, target.long())
                     #loss = loss.float().mean()
                     loss = (loss.float()*(args.augmentation*(target>0)+1).float()).mean()
@@ -320,18 +316,14 @@ for epoch in range(args.epochs):
             model.eval()
             train_loss = total_loss / train_loader.__len__()
             print("total loss : "+str(train_loss))
-            dev_loss = get_loss(dev_loader, model)
-            print("dev loss : "+str(dev_loss))
+            #dev_loss = get_loss(dev_loader, model)
+            #print("dev loss : "+str(dev_loss))
             writer.add_scalar('Train/Loss', train_loss, epoch*args.num_train+batch_idx+1)
-            writer.add_scalar('Dev/Loss', dev_loss, epoch*args.num_train+batch_idx+1)
-            #train_acc = get_accuracy(train_loader, model)
-            #print("Training accuracy : " + str(train_acc))
+            #writer.add_scalar('Dev/Loss', dev_loss, epoch*args.num_train+batch_idx+1)
             dev_dice = get_dice_score(dev_loader, model)
             print("Dev dice score : " + str(dev_dice))
             writer.add_scalar('Dev/Dice', dev_dice, epoch*args.num_train+batch_idx+1)
             torch.save(model, save_model_filename + str(epoch*args.num_train+batch_idx+1) + '.pt')
-            #dev_acc = get_accuracy(dev_loader, model)
-            #print("Dev accuracy : " + str(dev_acc))
 
             model.train()
 

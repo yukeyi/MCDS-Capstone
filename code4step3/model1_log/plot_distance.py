@@ -18,8 +18,8 @@ distance3 = np.load("distance3.npy")
 pos_mean3 = distance3[0].reshape((-1,2)).transpose()[0]
 neg_mean3 = distance3[1].reshape((-1,2)).transpose()[0]
 
-pos_mean = np.concatenate((pos_mean0,pos_mean1,pos_mean2,pos_mean3))
-neg_mean = np.concatenate((neg_mean0,neg_mean1,neg_mean2,neg_mean3))
+pos_mean = np.concatenate((pos_mean0,pos_mean1,pos_mean2,pos_mean3))[:1100]
+neg_mean = np.concatenate((neg_mean0,neg_mean1,neg_mean2,neg_mean3))[:1100]
 
 
 x1 = np.arange(len(pos_mean))

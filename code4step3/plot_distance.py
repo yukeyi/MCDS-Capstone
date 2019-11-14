@@ -31,7 +31,7 @@ plt.plot(x2, neg_mean0, label="negative")
 plt.hlines(2.4, 1, len(x2), colors = "gray", linestyles = "dashed")
 plt.hlines(0.5, 1, len(x2), colors = "gray", linestyles = "dashed")
 
-plt.ylabel("Distance value", fontsize=16)
+plt.ylabel("Distance value with Sift Pretrain", fontsize=16)
 #plt.ylabel("Mean Absolute Error", fontsize=16)
 plt.xlabel("Number of Images", fontsize=16)
 

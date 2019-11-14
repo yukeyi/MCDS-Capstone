@@ -13,12 +13,19 @@ from unet_data_loader_util import get_data, load_Directory, get_label_map
 from feature_learner_model import featureLearner, featureLearner_old
 
 
-
 try:
     from itertools import  ifilterfalse
 except ImportError: # py3k
     from itertools import  filterfalse as ifilterfalse
 
+def load_pairs():
+    register_pairs = {}
+    for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMaps"):
+        for pairname in directories:
+            images = pairname.split("-")
+            assert(len(images)==2)
+            register_pairs[images[0]] = images[1]
+    return register_pairs
 
 class BrainImageDataset(Dataset):
     def __init__(self, dirList):
@@ -31,7 +38,22 @@ class BrainImageDataset(Dataset):
         global fix_image
         global batch_id
 
-        name = self.data[index]
+        if(args.KNN == 0):
+            name = self.data[index]
+
+        # following code does not exactly make sense, but since we do not need to retrieve all the pairs, it looks OK for now.
+        if(args.KNN > 0):
+            if(batch_id % 2 == 0):
+                while(1):
+                    name = self.data[index]
+                    if(name in register_pairs):
+                        break
+                    else:
+                        index += 1
+            else:
+                name = register_pairs[fix_name]
+        print(name)
+
         try:
             image = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/norm.nii").astype("float32") / 256
             target = get_data(ROOT_DIR + "Brain2NIFI/" + name + "/aseg.nii")
@@ -61,6 +83,7 @@ class BrainImageDataset(Dataset):
                         continue
                     point_res = find_neighbor(image.cpu().numpy(), point, fix_feature[:,point[0],point[1],point[2]])
                     KNN_res.append(point_res)
+                print("already saved the KNN res")
                 np.save(timeStr+"/"+fix_name+"-"+name+"_KNN_RES",KNN_res)
         return (image, label)
 
@@ -199,12 +222,12 @@ parser.add_argument('--test-batch-size', type=int, default=1, metavar='N',
 parser.add_argument('--shard', type=int, default=4, metavar='N',
                     help='split how many shards for one image')
 parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                    help='number of epochs to train (default: 20)')
+        help='number of epochs to train (default: 20)')
 parser.add_argument('--num_train', type=int, default=3000, metavar='N',
                     help='number of data for training')
 parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
-parser.add_argument('--KNN', type=int, default=0, metavar='N',
+parser.add_argument('--KNN', type=int, default=10, metavar='N',
                     help='if KNN is not 0, we generate KNN matching for each image, K is set')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
@@ -212,7 +235,7 @@ parser.add_argument('--augmentation', type=float, default=10.0, metavar='LR',
                     help='weight for lebeled object')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
-parser.add_argument('--channel-base', type=int, default=32, metavar='CB',
+parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
                     help='number of channel for first convolution (default: 8)')
 parser.add_argument('--log-interval', type=int, default=50, metavar='N',
                     help='how many epoches between logging training status')
@@ -220,7 +243,7 @@ parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
 parser.add_argument('--test-model', type=str, default='', metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default='2019-11-12-16-17-50/model50.pt', metavar='N',
+parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')
 parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-14-57/model559.pt', metavar='N',
                     help='pretrained feature learning model')
@@ -231,6 +254,9 @@ ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_chal
 trainFileName = "trainfiles.txt"
 testFileName = "testfiles.txt"
 label_map, label_list = get_label_map()
+
+#store all pairs of registration
+register_pairs = load_pairs()
 
 timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr)

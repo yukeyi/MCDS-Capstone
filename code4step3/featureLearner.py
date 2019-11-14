@@ -260,9 +260,19 @@ def find_boundary(fixed_image_array, moving_image_array):
         if(old_index_range != index_range):
             print(index_range)
 
+def get_KNN_landmark():
+    crop_index = [35, 216, 41, 192, 53, 204]
+    points = []
+    for i in range(crop_index[0],crop_index[1], 60):
+        for j in range(crop_index[2],crop_index[3], 50):
+            for k in range(crop_index[4],crop_index[5], 50):
+                points.append([i,j,k])
+    #print(points)
+    return points
 
 def train(args, model, device, loader, optimizer):
-
+    global name_list_KNN
+    global test_points
     model.train()
     criterion = CorrespondenceContrastiveLoss(args.margin, args.batch)
     criterion_sift = SiftLoss()
@@ -280,7 +290,18 @@ def train(args, model, device, loader, optimizer):
         print("Epoch: "+str(epoch_id))
         print("---------------------------------------------------------------------")
         for batch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
-            # if we only want to generate points
+            #print(batch_idx)
+            if(args.KNN != 0):
+                if("".join(fix) not in name_list_KNN):
+                    continue
+                image = Image("".join(fix) + "-" + "".join(moving))
+                print("".join(fix) + "-" + "".join(moving))
+                KNN_ground_truth = find_points(test_points,image)
+                print(KNN_ground_truth)
+                print(KNN_ground_truth.shape)
+                np.save("".join(fix) + "-" + "".join(moving)+"-KNN-ground-truth.npy",KNN_ground_truth)
+                continue
+
             if(args.sift == 1):
                 losses = []
                 for input_image in [fixed_image_array, moving_image_array]:
@@ -451,6 +472,8 @@ def train(args, model, device, loader, optimizer):
             if(len(loss_history) % args.model_save_interval == 0):
                 torch.save(model, save_model_filename+str(batch_idx+epoch_id*10000)+'.pt')
 
+        if(args.KNN != 0):
+            exit()
 
 
 parser = argparse.ArgumentParser(description='PyTorch')
@@ -487,13 +510,19 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
-parser.add_argument('--load-model', type=str, default="2019-11-07-23-01-20/model559.pt", metavar='N',
+parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')
+parser.add_argument('--KNN', type=int, default=1, metavar='N',
+                    help='if KNN is not 0, we generate KNN matching for each image, K is set')
 
 input_args = parser.parse_args()
 crop_index = [25, 225, 28, 204, 48, 208]
 crop_size = [200, 176, 160]
 crop_half_size = [100, 88, 80]
+
+if(input_args.KNN>0):
+    test_points = get_KNN_landmark()
+    name_list_KNN = ['121128_WE48QC_FS', '110119_MP48CH_FS', '110207_KG37KT_FS']
 
 torch.manual_seed(1)
 use_cuda = torch.cuda.is_available()
@@ -508,11 +537,11 @@ if(input_args.load_model is not None):
     print("Load model : "+input_args.load_model)
     model = torch.load(input_args.load_model).to(device)
 
-summary(model, input_size=(1, 100, 88, 80))
+#summary(model, input_size=(1, 100, 88, 80))
 print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)
 
-train_dataset = BrainImageDataset(load_Directory(True, register_pairs), register_pairs)
+train_dataset = BrainImageDataset(load_Directory(True, register_pairs), register_pairs, input_args.KNN, name_list_KNN)
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=1, shuffle=True)
 
 train(input_args, model, device, train_loader, optimizer)

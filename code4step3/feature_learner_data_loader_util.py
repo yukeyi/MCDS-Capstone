@@ -42,13 +42,17 @@ class Image:
         self.transformixImageFilter.Execute()
 
 class BrainImageDataset(Dataset):
-    def __init__(self, dirList, register_pairs):
+    def __init__(self, dirList, register_pairs, KNN, name_list_KNN):
         self.data = dirList
         self.register_pairs = register_pairs
+        self.name_list_KNN = name_list_KNN
+        self.KNN = KNN
 
     def __getitem__(self, index):
-
         fix = self.data[index]
+        if (self.KNN != 0):
+            if (fix not in self.name_list_KNN):
+                return (np.array([]), np.array([]), fix, np.array([]))
         fixed_image_array = get_data(ROOT_DIR + "Brain2NIFI/" + fix + "/norm.nii")
         moving = self.register_pairs[fix]
         moving_image_array = get_data(ROOT_DIR + "Brain2NIFI/" + moving + "/norm.nii")

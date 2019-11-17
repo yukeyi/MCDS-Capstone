@@ -210,7 +210,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
         #print(a/self.batch)
         loss /= (2*cnt)
         loss *= 100
-        print(np.array(pos_dis).mean(), np.array(neg_dis).mean())
+        #print(np.array(pos_dis).mean(), np.array(neg_dis).mean())
         return loss, pos_dis, neg_dis
 
 def find_boundary(fixed_image_array, moving_image_array):
@@ -486,7 +486,7 @@ parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=0.8, metavar='LR',
+parser.add_argument('--margin', type=float, default=2.0, metavar='LR',
                     help='margin')
 parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
                     help='distanceMargin')

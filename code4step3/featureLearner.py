@@ -210,6 +210,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
         #print(a/self.batch)
         loss /= (2*cnt)
         loss *= 100
+        print(np.array(pos_dis).mean(), np.array(neg_dis).mean())
         return loss, pos_dis, neg_dis
 
 def find_boundary(fixed_image_array, moving_image_array):
@@ -485,7 +486,7 @@ parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
+parser.add_argument('--margin', type=float, default=0.8, metavar='LR',
                     help='margin')
 parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
                     help='distanceMargin')
@@ -510,7 +511,7 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
-parser.add_argument('--load-model', type=str, default="2019-11-06-16-23-37/model10442.pt", metavar='N',
+parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')
 parser.add_argument('--KNN', type=int, default=0, metavar='N',
                     help='if KNN is not 0, we generate KNN matching for each image, K is set')

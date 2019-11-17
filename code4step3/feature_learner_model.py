@@ -8,12 +8,12 @@ class featureLearner(nn.Module):
         super(featureLearner, self).__init__()
 
         self.in_dim = 1
-        self.mid1_dim = 32
+        self.mid1_dim = 64
         self.mid2_dim = 32
         self.mid3_dim = 32
-        self.mid4_dim = 32
-        self.mid5_dim = 32
-        self.out_dim = 128
+        self.mid4_dim = 16
+        self.mid5_dim = 16
+        self.out_dim = 8
         #act_fn = nn.LeakyReLU()
         act_fn = nn.ReLU()
 

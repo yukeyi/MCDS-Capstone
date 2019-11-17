@@ -2,15 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e688956d-a1a9-4700-b339-28bcfdecc0c4" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/distance.npy" beforeDir="false" afterPath="$PROJECT_DIR$/distance.npy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/featureLearner.py" beforeDir="false" afterPath="$PROJECT_DIR$/featureLearner.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature_learner_data_loader_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/feature_learner_data_loader_util.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/log/events.out.tfevents.1573593470.gpu058.pvt.bridges.psc.edu" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/log/events.out.tfevents.1573601556.gpu058.pvt.bridges.psc.edu" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/loss.npy" beforeDir="false" afterPath="$PROJECT_DIR$/loss.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main3D_with_embedding.py" beforeDir="false" afterPath="$PROJECT_DIR$/main3D_with_embedding.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model1_log/plot_distance.py" beforeDir="false" afterPath="$PROJECT_DIR$/model1_log/plot_distance.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/feature_learner_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/feature_learner_model.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -42,10 +35,10 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main3D.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="560">
+            <state relative-caret-position="2609">
               <caret line="165" column="30" selection-start-line="165" selection-start-column="30" selection-end-line="165" selection-end-column="30" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
@@ -57,8 +50,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/feature_learner_model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="19">
-              <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
+            <state relative-caret-position="247">
+              <caret line="13" column="26" selection-start-line="13" selection-start-column="26" selection-end-line="13" selection-end-column="26" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -66,11 +59,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/featureLearner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="115">
-              <caret line="538" column="20" selection-start-line="538" selection-start-column="12" selection-end-line="538" selection-end-column="20" />
+            <state relative-caret-position="206">
+              <caret line="488" column="55" selection-start-line="488" selection-start-column="55" selection-end-line="488" selection-end-column="55" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -151,7 +144,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>model</find>
       <find>features</find>
       <find>KNN_res</find>
       <find>image</find>
@@ -181,6 +173,7 @@
       <find>BrainParameter</find>
       <find>points_data</find>
       <find>torch.lo</find>
+      <find>distance</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -197,15 +190,15 @@
         <option value="$PROJECT_DIR$/main3D.py" />
         <option value="$PROJECT_DIR$/plot.py" />
         <option value="$PROJECT_DIR$/sift.py" />
-        <option value="$PROJECT_DIR$/feature_learner_model.py" />
         <option value="$PROJECT_DIR$/visualize_loss.py" />
         <option value="$PROJECT_DIR$/model1_log/plot_distance.py" />
         <option value="$PROJECT_DIR$/unet_data_loader_util.py" />
         <option value="$PROJECT_DIR$/main3D_with_embedding.py" />
         <option value="$PROJECT_DIR$/KNN/analyze_KNN_result.py" />
         <option value="$PROJECT_DIR$/feature_learner_data_loader_util.py" />
-        <option value="$PROJECT_DIR$/featureLearner.py" />
         <option value="$PROJECT_DIR$/plot_distance.py" />
+        <option value="$PROJECT_DIR$/featureLearner.py" />
+        <option value="$PROJECT_DIR$/feature_learner_model.py" />
       </list>
     </option>
   </component>
@@ -427,12 +420,12 @@
       <workItem from="1571510819337" duration="5199000" />
       <workItem from="1572111195609" duration="17804000" />
       <workItem from="1572999059995" duration="35728000" />
-      <workItem from="1573584497053" duration="41507000" />
+      <workItem from="1573584497053" duration="42187000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="110379000" />
+    <option name="totallyTimeSpent" value="111059000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="829" extended-state="6" />
@@ -469,7 +462,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/featureLearner.py</url>
-          <line>338</line>
+          <line>339</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -687,16 +680,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/unet_data_loader_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="366">
-          <caret line="48" selection-start-line="48" selection-end-line="48" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///anaconda3/lib/python3.6/site-packages/numpy/lib/npyio.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="140">
@@ -754,10 +737,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main3D.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2609">
+          <caret line="165" column="30" selection-start-line="165" selection-start-column="30" selection-end-line="165" selection-end-column="30" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/unet_data_loader_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="366">
+          <caret line="48" selection-start-line="48" selection-end-line="48" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/feature_learner_model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19">
-          <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
+        <state relative-caret-position="247">
+          <caret line="13" column="26" selection-start-line="13" selection-start-column="26" selection-end-line="13" selection-end-column="26" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
@@ -766,20 +769,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/featureLearner.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="115">
-          <caret line="538" column="20" selection-start-line="538" selection-start-column="12" selection-end-line="538" selection-end-column="20" />
+        <state relative-caret-position="206">
+          <caret line="488" column="55" selection-start-line="488" selection-start-column="55" selection-end-line="488" selection-end-column="55" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main3D.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="560">
-          <caret line="165" column="30" selection-start-line="165" selection-start-column="30" selection-end-line="165" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>

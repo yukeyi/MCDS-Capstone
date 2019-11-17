@@ -24,14 +24,14 @@ class Image:
         self.moving_image = sitk.ReadImage(ROOT_DIR + "Brain2NIFI/" + images[1] + "/norm.nii")
 
     def parse_registration(self):
-        param0 = sitk.ReadParameterFile("BrainParameterMaps/" + self.reg_dir + "/TransformParameters.0.txt")
-        param1 = sitk.ReadParameterFile("BrainParameterMaps/" + self.reg_dir + "/TransformParameters.1.txt")
-        param2 = sitk.ReadParameterFile("BrainParameterMaps/" + self.reg_dir + "/TransformParameters.2.txt")
+        param0 = sitk.ReadParameterFile("BrainParameterMapsTuned/" + self.reg_dir + "/TransformParameters.0.txt")
+        param1 = sitk.ReadParameterFile("BrainParameterMapsTuned/" + self.reg_dir + "/TransformParameters.1.txt")
+        #param2 = sitk.ReadParameterFile("BrainParameterMapsTuned/" + self.reg_dir + "/TransformParameters.2.txt")
         transformixImageFilter = sitk.TransformixImageFilter()
         transformixImageFilter.LogToConsoleOff()
         transformixImageFilter.AddTransformParameterMap(param0)
         transformixImageFilter.AddTransformParameterMap(param1)
-        transformixImageFilter.AddTransformParameterMap(param2)
+        #transformixImageFilter.AddTransformParameterMap(param2)
         self.transformixImageFilter = transformixImageFilter
 
     def register_points(self, test_file='test.pts'):
@@ -85,7 +85,7 @@ def load_Directory(is_train, register_pairs):
 
 def load_pairs():
     register_pairs = {}
-    for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMaps"):
+    for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMapsTuned"):
         for pairname in directories:
             images = pairname.split("-")
             assert(len(images)==2)

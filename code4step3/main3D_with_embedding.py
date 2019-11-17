@@ -19,12 +19,25 @@ except ImportError: # py3k
     from itertools import  filterfalse as ifilterfalse
 
 def load_pairs():
-    register_pairs = {}
-    for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMaps"):
-        for pairname in directories:
-            images = pairname.split("-")
-            assert(len(images)==2)
-            register_pairs[images[0]] = images[1]
+    if(args.KNN != 0):
+        register_pairs = {}
+        register_pairs['090425_FY89SB_FS'] = '091006_YN89DU_FS'
+        register_pairs['100311_RD78TU_FS'] = '101214_KZ78TH_FS'
+        register_pairs['090613_YJ67CK_FS'] = '100810_NX39XU_FS'
+        register_pairs['100330_JC86VH_FS'] = '140923_BS78VP_FS'
+        register_pairs['090927_QF82NU_FS'] = '090922_FZ57YU_FS'
+        register_pairs['120820_BD75XH_FS'] = '111013_HS48TU_FS'
+        register_pairs['100401_RH93ZU_FS'] = '101212_QV37DU_FS'
+        register_pairs['100709_GH46GU_FS'] = '100907_HY25UU_FS'
+        register_pairs['090314_KK88XB_FS'] = '110124_JJ63PU_FS'
+        register_pairs['110210_FK52JU_FS'] = '110912_FN66YK_FS'
+    else:
+        register_pairs = {}
+        for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMaps"):
+            for pairname in directories:
+                images = pairname.split("-")
+                assert(len(images)==2)
+                register_pairs[images[0]] = images[1]
     return register_pairs
 
 class BrainImageDataset(Dataset):
@@ -43,15 +56,19 @@ class BrainImageDataset(Dataset):
 
         # following code does not exactly make sense, but since we do not need to retrieve all the pairs, it looks OK for now.
         if(args.KNN > 0):
-            if(batch_id % 2 == 0):
+            if(batch_id % 2 == 1):
                 while(1):
                     name = self.data[index]
                     if(name in register_pairs):
                         break
                     else:
+                        #print("miss "+name)
                         index += 1
+                        if(index >= len(self.data)):
+                            index = 0
             else:
                 name = register_pairs[fix_name]
+                register_pairs.pop(fix_name)
         print(name)
 
         try:
@@ -64,13 +81,14 @@ class BrainImageDataset(Dataset):
         for i in range(len(label_list)):
             label += ((target == label_list[i])*i)
         label = label[0]
-        if(args.KNN > 0 and batch_id % 2 == 0):
+        if(args.KNN > 0 and batch_id % 2 == 1):
             fix_image = copy.deepcopy(image)
         torch.backends.cudnn.enabled = False
-        image = torch.tensor(abstract_feature(image))
+        image = torch.tensor(abstract_feature(image)) # this operation cannot be put in 16G machine
+        #image = abstract_feature(image)
         torch.backends.cudnn.enabled = True
         if(args.KNN > 0):
-            if(batch_id % 2 == 0):
+            if(batch_id % 2 == 1):
                 fix_name = name
                 fix_feature = copy.deepcopy(image.cpu().numpy())
             else:
@@ -94,17 +112,15 @@ class BrainImageDataset(Dataset):
 def abstract_feature(image):
     #print(image.shape)
 
-    #feature = np.zeros((2,256,256,256))
-    #feature[0] = image
-    #feature[1] = image
-    #return feature
     feature = np.zeros((128,256,256,256))
     with torch.no_grad():
         for x in range(2):
             for y in range(2):
                 for z in range(2):
+                    #print(x,y,z)
                     feature[:,x*128:x*128+128,y*128:y*128+128,z*128:z*128+128] = \
                         copy.deepcopy(fl_model(torch.tensor([image[:,x*128:x*128+128,y*128:y*128+128,z*128:z*128+128]]).to(device))[0].cpu())
+
     #print(feature.shape)
     return feature
 
@@ -227,7 +243,7 @@ parser.add_argument('--num_train', type=int, default=3000, metavar='N',
                     help='number of data for training')
 parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
-parser.add_argument('--KNN', type=int, default=10, metavar='N',
+parser.add_argument('--KNN', type=int, default=0, metavar='N',
                     help='if KNN is not 0, we generate KNN matching for each image, K is set')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
@@ -241,12 +257,16 @@ parser.add_argument('--log-interval', type=int, default=50, metavar='N',
                     help='how many epoches between logging training status')
 parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
-parser.add_argument('--test-model', type=str, default='', metavar='N',
+parser.add_argument('--test-model', type=str, default=None, metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default=None, metavar='N',
+parser.add_argument('--load-model', type=str, default='2019-11-13-14-08-12/model1450.pt', metavar='N',
                     help='If load-model has a name, use pretrained model')
 parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-14-57/model559.pt', metavar='N',
                     help='pretrained feature learning model')
+#parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-14-57/model19.pt', metavar='N',
+#                    help='pretrained feature learning model')
+#parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-58-10/model1039.pt', metavar='N',
+#                    help='pretrained feature learning model')
 args = parser.parse_args()
 
 ROOT_DIR = "/pylon5/ac5616p/Data/HeartSegmentationProject/CAP_challenge/CAP_challenge_training_set/test2/"
@@ -281,12 +301,6 @@ if(device == torch.device('cpu')):
     fl_model = torch.load(args.embedding_model,map_location='cpu')
 else:
     fl_model = torch.load(args.embedding_model)
-#torch.save(fl_model.state_dict(), "test.pt")
-#fl_model = featureLearner()
-#if(device == torch.device('cpu')):
-#    fl_model.load_state_dict(torch.load("test.pt", map_location='cpu'))
-#else:
-#    fl_model.load_state_dict(torch.load("test.pt"))
 fl_model = fl_model.to(device)
 fl_model.eval()
 
@@ -301,7 +315,7 @@ if(args.KNN>0):
     fix_position = []
     fix_feature = []
     fix_image = []
-    batch_id = 0
+    batch_id = 1
 
 model.train()
 for epoch in range(args.epochs):
@@ -309,7 +323,6 @@ for epoch in range(args.epochs):
     #get_accuracy(dev_loader, model)
     total_loss = 0.0
     for batch_idx, (whole_data, whole_label) in enumerate(train_loader):
-
         if(args.KNN != 0):
             batch_id = batch_idx
             print(batch_idx)
@@ -340,7 +353,8 @@ for epoch in range(args.epochs):
 
             print("Epoch : "+str(epoch)+" Batch: "+str(batch_idx))
             model.eval()
-            train_loss = total_loss / train_loader.__len__()
+            train_loss = total_loss / args.log_interval
+            total_loss = 0.0
             print("total loss : "+str(train_loss))
             #dev_loss = get_loss(dev_loader, model)
             #print("dev loss : "+str(dev_loss))

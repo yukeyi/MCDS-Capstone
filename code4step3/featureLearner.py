@@ -9,7 +9,6 @@ from torchsummary import summary
 from feature_learner_model import *
 from feature_learner_data_loader_util import *
 from sift import get_sift_feature
-# explore parameter margin: for 6 layer CNN use 0.5, for dense net use 6.0
 
 torch.backends.cudnn.enabled = False
 
@@ -271,8 +270,7 @@ def get_KNN_landmark():
     return points
 
 def train(args, model, device, loader, optimizer):
-    global name_list_KNN
-    global test_points
+
     model.train()
     criterion = CorrespondenceContrastiveLoss(args.margin, args.batch)
     criterion_sift = SiftLoss()
@@ -292,6 +290,8 @@ def train(args, model, device, loader, optimizer):
         for batch_idx, (fixed_image_array, moving_image_array, fix, moving) in enumerate(loader):
             #print(batch_idx)
             if(args.KNN != 0):
+                global name_list_KNN
+                global test_points
                 if("".join(fix) not in name_list_KNN):
                     continue
                 image = Image("".join(fix) + "-" + "".join(moving))
@@ -340,10 +340,10 @@ def train(args, model, device, loader, optimizer):
             positive_distance = []
             negative_distance = []
 
-            print("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
-            if(os.path.exists("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
+            print("points_data_tuned/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            if(os.path.exists("points_data_tuned/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
                 try:
-                    points_data = np.load("points_data/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+                    points_data = np.load("points_data_tuned/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
                 except:
                     continue
                 point_list = np.array(points_data[0])
@@ -355,7 +355,7 @@ def train(args, model, device, loader, optimizer):
                 point_list, positive_point_list, negative_point_list = \
                     find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
                 points_data = np.array([point_list, positive_point_list, negative_point_list])
-                np.save("points_data/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
+                np.save("points_data_tuned/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
                 point_list = np.array(point_list)
                 positive_point_list = np.array(positive_point_list)
                 negative_point_list = np.array(negative_point_list)
@@ -489,7 +489,7 @@ parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
                     help='margin')
 parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
                     help='distanceMargin')
-parser.add_argument('--hardMode', type=int, default=1, metavar='LR',
+parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
                     help='If hard Mode is set as 1, we only use hard negative example,'
                          ' or we only use easy negative example')
 parser.add_argument('--sift', type=int, default=0, metavar='LR',
@@ -510,9 +510,9 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
-parser.add_argument('--load-model', type=str, default=None, metavar='N',
+parser.add_argument('--load-model', type=str, default="2019-11-06-16-23-37/model10442.pt", metavar='N',
                     help='If load-model has a name, use pretrained model')
-parser.add_argument('--KNN', type=int, default=1, metavar='N',
+parser.add_argument('--KNN', type=int, default=0, metavar='N',
                     help='if KNN is not 0, we generate KNN matching for each image, K is set')
 
 input_args = parser.parse_args()
@@ -522,7 +522,8 @@ crop_half_size = [100, 88, 80]
 
 if(input_args.KNN>0):
     test_points = get_KNN_landmark()
-    name_list_KNN = ['121128_WE48QC_FS', '110119_MP48CH_FS', '110207_KG37KT_FS']
+    name_list_KNN = ['090425_FY89SB_FS','100311_RD78TU_FS','090613_YJ67CK_FS','100330_JC86VH_FS','090927_QF82NU_FS',
+                     '120820_BD75XH_FS','100401_RH93ZU_FS','100709_GH46GU_FS','090314_KK88XB_FS','110210_FK52JU_FS']
 
 torch.manual_seed(1)
 use_cuda = torch.cuda.is_available()
@@ -541,7 +542,10 @@ if(input_args.load_model is not None):
 print(model)
 optimizer = optim.Adam(model.parameters(), lr=input_args.lr, betas=(0.9, 0.99), weight_decay=input_args.wd)
 
-train_dataset = BrainImageDataset(load_Directory(True, register_pairs), register_pairs, input_args.KNN, name_list_KNN)
+if(input_args.KNN>0):
+    train_dataset = BrainImageDataset(load_Directory(True, register_pairs), register_pairs, input_args.KNN, name_list_KNN)
+else:
+    train_dataset = BrainImageDataset(load_Directory(True, register_pairs), register_pairs, input_args.KNN, None)
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=1, shuffle=True)
 
 train(input_args, model, device, train_loader, optimizer)

@@ -4,16 +4,16 @@ from model_util import conv_block_3d_feature_leaner
 
 
 class featureLearner(nn.Module):
-    def __init__(self):
+    def __init__(self,channels):
         super(featureLearner, self).__init__()
 
         self.in_dim = 1
-        self.mid1_dim = 60
-        self.mid2_dim = 32
-        self.mid3_dim = 32
-        self.mid4_dim = 32
-        self.mid5_dim = 16
-        self.out_dim = 16
+        self.mid1_dim = channels[0]
+        self.mid2_dim = channels[1]
+        self.mid3_dim = channels[2]
+        self.mid4_dim = channels[3]
+        self.mid5_dim = channels[4]
+        self.out_dim = channels[5]
         #act_fn = nn.LeakyReLU()
         act_fn = nn.ReLU()
 

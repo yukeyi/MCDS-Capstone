@@ -28,8 +28,8 @@ x2 = np.arange(len(neg_mean0))
 plt.plot(x1, pos_mean0, label="positive")
 plt.plot(x2, neg_mean0, label="negative")
 
-plt.hlines(2.4, 1, len(x2), colors = "gray", linestyles = "dashed")
-plt.hlines(0.5, 1, len(x2), colors = "gray", linestyles = "dashed")
+#plt.hlines(0.8, 1, len(x2), colors = "gray", linestyles = "dashed")
+#plt.hlines(0.5, 1, len(x2), colors = "gray", linestyles = "dashed")
 
 plt.ylabel("Distance value with Sift Pretrain", fontsize=16)
 #plt.ylabel("Mean Absolute Error", fontsize=16)

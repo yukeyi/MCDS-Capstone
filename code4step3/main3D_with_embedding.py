@@ -259,7 +259,7 @@ parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
 parser.add_argument('--test-model', type=str, default=None, metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default='2019-11-13-14-08-12/model1450.pt', metavar='N',
+parser.add_argument('--load-model', type=str, default='2019-11-15-23-44-38/model1450.pt', metavar='N',
                     help='If load-model has a name, use pretrained model')
 parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-14-57/model559.pt', metavar='N',
                     help='pretrained feature learning model')

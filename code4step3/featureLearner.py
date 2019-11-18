@@ -100,7 +100,7 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
                     negative_point_list.append(negative_point)
 
     positive_point_list = find_points(point_list,image)
-    #print(positive_point_list.shape)
+    print(positive_point_list.shape)
     point_list = list(np.array(point_list).reshape((8, Npoints * 2 // 8, 3)))
     negative_point_list = list(np.array(negative_point_list).reshape((8, Npoints * 2 // 8, 3)))
     positive_point_list = list(positive_point_list.reshape((8, Npoints * 2 // 8, 3)))
@@ -210,7 +210,7 @@ class CorrespondenceContrastiveLoss(nn.Module):
         #print(a/self.batch)
         loss /= (2*cnt)
         loss *= 100
-        print(np.array(pos_dis).mean(), np.array(neg_dis).mean())
+        #print(np.array(pos_dis).mean(), np.array(neg_dis).mean())
         return loss, pos_dis, neg_dis
 
 def find_boundary(fixed_image_array, moving_image_array):
@@ -273,7 +273,15 @@ def get_KNN_landmark():
 def train(args, model, device, loader, optimizer):
 
     model.train()
-    criterion = CorrespondenceContrastiveLoss(args.margin, args.batch)
+    if(args.final_channel == 128):
+        margin = 2.4
+    elif(args.final_channel == 32):
+        margin = 2.0
+    elif(args.final_channel == 16):
+        margin = 1.5
+    elif(args.final_channel == 8):
+        margin = 0.8
+    criterion = CorrespondenceContrastiveLoss(margin, args.batch)
     criterion_sift = SiftLoss()
     timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
     os.mkdir(timeStr)
@@ -341,22 +349,24 @@ def train(args, model, device, loader, optimizer):
             positive_distance = []
             negative_distance = []
 
-            print("points_data_tuned/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
-            if(os.path.exists("points_data_tuned/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
+            print("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            if(os.path.exists("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
                 try:
-                    points_data = np.load("points_data_tuned/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+                    points_data = np.load("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
                 except:
                     continue
                 point_list = np.array(points_data[0])
                 positive_point_list = np.array(points_data[1])
                 negative_point_list = np.array(points_data[2])
             else:
+                exit()
                 image = Image("".join(fix)+"-"+"".join(moving))
                 print("".join(fix)+"-"+"".join(moving))
+
                 point_list, positive_point_list, negative_point_list = \
                     find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
                 points_data = np.array([point_list, positive_point_list, negative_point_list])
-                np.save("points_data_tuned/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
+                np.save("points_data_tuned_2/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
                 point_list = np.array(point_list)
                 positive_point_list = np.array(positive_point_list)
                 negative_point_list = np.array(negative_point_list)
@@ -486,7 +496,7 @@ parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.00001)')
 parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
-parser.add_argument('--margin', type=float, default=1.5, metavar='LR',
+parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
                     help='margin')
 parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
                     help='distanceMargin')
@@ -511,6 +521,8 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
+parser.add_argument('--final_channel', type=int, default=32, metavar='LR',
+                    help='final_channel')
 parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')
 parser.add_argument('--KNN', type=int, default=0, metavar='N',
@@ -534,7 +546,15 @@ print("Using device: "+str(device))
 #store all pairs of registration
 register_pairs = load_pairs()
 
-model = featureLearner().to(device)
+if (input_args.final_channel == 128):
+    channels = [32,32,32,32,32,128]
+elif (input_args.final_channel == 32):
+    channels = [56,32,32,32,32,32]
+elif (input_args.final_channel == 16):
+    channels = [60,32,32,32,16,16]
+elif (input_args.final_channel == 8):
+    channels = [64,32,32,16,16,8]
+model = featureLearner(channels).to(device)
 if(input_args.load_model is not None):
     print("Load model : "+input_args.load_model)
     model = torch.load(input_args.load_model).to(device)

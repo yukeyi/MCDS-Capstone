@@ -64,15 +64,19 @@ def point_redirection(x, y, z, x_shard,y_shard,z_shard):
 
 
 
-def right_difficulty(negative_point, fixed_point):
-    if(abs(negative_point[0]-fixed_point[0]) < input_args.distanceMargin
-            and abs(negative_point[1]-fixed_point[1]) < input_args.distanceMargin
-            and abs(negative_point[2]-fixed_point[2]) < input_args.distanceMargin):
-        return (input_args.hardMode == 1)
-    return (input_args.hardMode == 0)
+def right_difficulty(negative_point, fixed_point, epoch_id, batch_idx):
+    if(epoch_id != 0):
+        distanceMargin = input_args.distanceMargin
+    else:
+        distanceMargin = int(60-(60-input_args.distanceMargin)*batch_idx/input_args.splstep)
+    if(abs(negative_point[0]-fixed_point[0]) < distanceMargin
+            and abs(negative_point[1]-fixed_point[1]) < distanceMargin
+            and abs(negative_point[2]-fixed_point[2]) < distanceMargin):
+        return 1
+    return 0
 
 
-def find_postive_negative_points(image, fixed_image_array, moving_image_array, Npoints):
+def find_postive_negative_points(image, fixed_image_array, moving_image_array, Npoints, epoch_id, batch_idx):
 
     point_list = []
     negative_point_list = []
@@ -94,7 +98,7 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
                         y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
                         z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
                         negative_point = np.array([x,y,z]).astype('int')
-                        if(right_difficulty(negative_point, fixed_point) and moving_image_array[0][0][x][y][z] != 0):
+                        if(right_difficulty(negative_point, fixed_point, epoch_id, batch_idx) and moving_image_array[0][0][x][y][z] != 0):
                             break
                     point_list.append(fixed_point)
                     negative_point_list.append(negative_point)
@@ -349,24 +353,24 @@ def train(args, model, device, loader, optimizer):
             positive_distance = []
             negative_distance = []
 
-            print("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
-            if(os.path.exists("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
+            print("points_data_tuned_spl/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            if(epoch_id > 1):
                 try:
-                    points_data = np.load("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+                    points_data = np.load("points_data_tuned_spl/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
                 except:
                     continue
                 point_list = np.array(points_data[0])
                 positive_point_list = np.array(points_data[1])
                 negative_point_list = np.array(points_data[2])
             else:
-                exit()
                 image = Image("".join(fix)+"-"+"".join(moving))
                 print("".join(fix)+"-"+"".join(moving))
 
                 point_list, positive_point_list, negative_point_list = \
-                    find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
+                    find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints, epoch_id, batch_idx)
                 points_data = np.array([point_list, positive_point_list, negative_point_list])
-                np.save("points_data_tuned_2/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
+                if(epoch_id == 1):
+                    np.save("points_data_tuned_spl/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
                 point_list = np.array(point_list)
                 positive_point_list = np.array(positive_point_list)
                 negative_point_list = np.array(negative_point_list)
@@ -498,11 +502,13 @@ parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
 parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
                     help='margin')
-parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
+parser.add_argument('--distanceMargin', type=float, default=10, metavar='LR',
                     help='distanceMargin')
-parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
-                    help='If hard Mode is set as 1, we only use hard negative example,'
-                         ' or we only use easy negative example')
+#parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
+#                    help='If hard Mode is set as 1, we only use hard negative example,'
+#                         ' or we only use easy negative example')
+parser.add_argument('--splstep', type=int, default=1350, metavar='LR',
+                    help='number of examples for self pace learning')
 parser.add_argument('--sift', type=int, default=0, metavar='LR',
                     help='If sift set as 1, we train the feature learner network using sift feature')
 parser.add_argument('--epoch', type=int, default=1, metavar='LR',
@@ -521,7 +527,7 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
-parser.add_argument('--final_channel', type=int, default=128, metavar='LR',
+parser.add_argument('--final_channel', type=int, default=8, metavar='LR',
                     help='final_channel')
 parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')

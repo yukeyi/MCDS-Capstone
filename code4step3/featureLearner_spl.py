@@ -48,8 +48,11 @@ def find_points(point_list, image):
     fr.close()
 
     # find the corresponding point
+    print(1)
     image.register_points()
+    print(2)
     transformed_points = get_output_points()
+    print(3)
     return transformed_points
 
 
@@ -93,12 +96,16 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
                         if(fixed_image_array[0][0][x][y][z] != 0):
                             break
                     #generate negative point
+                    sample_time = 0
                     while(1):
+                        sample_time += 1
                         x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0]-1)+crop_half_size[0]*x_shard
                         y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
                         z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
                         negative_point = np.array([x,y,z]).astype('int')
                         if(right_difficulty(negative_point, fixed_point, epoch_id, batch_idx) and moving_image_array[0][0][x][y][z] != 0):
+                            break
+                        if(sample_time > 1000):
                             break
                     point_list.append(fixed_point)
                     negative_point_list.append(negative_point)
@@ -502,7 +509,7 @@ parser.add_argument('--wd', type=float, default=1e-4, metavar='LR',
                     help='weight decay')
 parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
                     help='margin')
-parser.add_argument('--distanceMargin', type=float, default=10, metavar='LR',
+parser.add_argument('--distanceMargin', type=float, default=15, metavar='LR',
                     help='distanceMargin')
 #parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
 #                    help='If hard Mode is set as 1, we only use hard negative example,'
@@ -541,8 +548,8 @@ crop_half_size = [100, 88, 80]
 
 if(input_args.KNN>0):
     test_points = get_KNN_landmark()
-    name_list_KNN = ['090425_FY89SB_FS','100311_RD78TU_FS','090613_YJ67CK_FS','100330_JC86VH_FS','090927_QF82NU_FS',
-                     '120820_BD75XH_FS','100401_RH93ZU_FS','100709_GH46GU_FS','090314_KK88XB_FS','110210_FK52JU_FS']
+    name_list_KNN = ['090425_FY89SB_FS','090827_WN83DK_FS','090613_YJ67CK_FS','100926_TG85VH_FS','090622_DN86WH_FS',
+                     '100910_XF67NH_FS','100401_RH93ZU_FS','100709_GH46GU_FS','100913_CM26NH_FS','100907_KV43EH_FS']
 
 torch.manual_seed(1)
 use_cuda = torch.cuda.is_available()

@@ -5,7 +5,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import argparse
-from torchsummary import summary
+import glob
+#from torchsummary import summary
 from feature_learner_model import *
 from feature_learner_data_loader_util import *
 from sift import get_sift_feature
@@ -89,12 +90,17 @@ def find_postive_negative_points(image, fixed_image_array, moving_image_array, N
                         if(fixed_image_array[0][0][x][y][z] != 0):
                             break
                     #generate negative point
+                    sample_time = 0
                     while(1):
+                        sample_time += 1
                         x = random.randint(crop_index[0],crop_index[0]+crop_half_size[0]-1)+crop_half_size[0]*x_shard
                         y = random.randint(crop_index[2],crop_index[2]+crop_half_size[1]-1)+crop_half_size[1]*y_shard
                         z = random.randint(crop_index[4],crop_index[4]+crop_half_size[2]-1)+crop_half_size[2]*z_shard
                         negative_point = np.array([x,y,z]).astype('int')
                         if(right_difficulty(negative_point, fixed_point) and moving_image_array[0][0][x][y][z] != 0):
+                            break
+                        if(sample_time > 1000):
+                            print(sample_time)
                             break
                     point_list.append(fixed_point)
                     negative_point_list.append(negative_point)
@@ -349,10 +355,10 @@ def train(args, model, device, loader, optimizer):
             positive_distance = []
             negative_distance = []
 
-            print("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
-            if(os.path.exists("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
+            print("points_data_tuned_hard/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+            if(os.path.exists("points_data_tuned_hard/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")):
                 try:
-                    points_data = np.load("points_data_tuned_2/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
+                    points_data = np.load("points_data_tuned_hard/"+"".join(fix)+"-"+"".join(moving)+"-points.npy")
                 except:
                     continue
                 point_list = np.array(points_data[0])
@@ -366,7 +372,8 @@ def train(args, model, device, loader, optimizer):
                 point_list, positive_point_list, negative_point_list = \
                     find_postive_negative_points(image, fixed_image_array, moving_image_array, args.Npoints)
                 points_data = np.array([point_list, positive_point_list, negative_point_list])
-                np.save("points_data_tuned_2/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
+                np.save("points_data_tuned_hard/" + "".join(fix) + "-" + "".join(moving) + "-points.npy", points_data)
+                continue
                 point_list = np.array(point_list)
                 positive_point_list = np.array(positive_point_list)
                 negative_point_list = np.array(negative_point_list)
@@ -481,7 +488,22 @@ def train(args, model, device, loader, optimizer):
                 np.save(save_loss_filename,np.array(loss_history))
                 np.save(save_dis_filename, np.array([positive_distance_history,negative_distance_history]))
             if(len(loss_history) % args.model_save_interval == 0):
+                '''
+                print(save_model_filename + '*.pt')
+                fileList = glob.glob(save_model_filename + '*.pt')
+                print(fileList)
+                for filePath in fileList:
+                    try:
+                        os.remove(filePath)
+                    except:
+                        print("Error while deleting file : ", filePath)
+                '''
+                #try:
                 torch.save(model, save_model_filename+str(batch_idx+epoch_id*10000)+'.pt')
+                #except:
+                #    os.remove(save_model_filename+str(batch_idx+epoch_id*10000)+'.pt')
+                #    print("still cannot save")
+
 
         if(args.KNN != 0):
             exit()
@@ -500,7 +522,7 @@ parser.add_argument('--margin', type=float, default=2.4, metavar='LR',
                     help='margin')
 parser.add_argument('--distanceMargin', type=float, default=20, metavar='LR',
                     help='distanceMargin')
-parser.add_argument('--hardMode', type=int, default=0, metavar='LR',
+parser.add_argument('--hardMode', type=int, default=1, metavar='LR',
                     help='If hard Mode is set as 1, we only use hard negative example,'
                          ' or we only use easy negative example')
 parser.add_argument('--sift', type=int, default=0, metavar='LR',
@@ -521,10 +543,12 @@ parser.add_argument('--model_save_interval', type=int, default=10, metavar='LR',
                     help='model_save_interval')
 parser.add_argument('--cubic_size', type=int, default=256, metavar='LR',
                     help='cubic_size')
-parser.add_argument('--final_channel', type=int, default=128, metavar='LR',
+parser.add_argument('--final_channel', type=int, default=32, metavar='LR',
                     help='final_channel')
-parser.add_argument('--load-model', type=str, default=None, metavar='N',
+parser.add_argument('--load-model', type=str, default="2019-11-18-23-29-15/model11169.pt", metavar='N',
                     help='If load-model has a name, use pretrained model')
+#parser.add_argument('--load-model', type=str, default="2019-11-19-11-16-11/model1349.pt", metavar='N',
+#                    help='If load-model has a name, use pretrained model')
 parser.add_argument('--KNN', type=int, default=0, metavar='N',
                     help='if KNN is not 0, we generate KNN matching for each image, K is set')
 
@@ -535,8 +559,8 @@ crop_half_size = [100, 88, 80]
 
 if(input_args.KNN>0):
     test_points = get_KNN_landmark()
-    name_list_KNN = ['090425_FY89SB_FS','100311_RD78TU_FS','090613_YJ67CK_FS','100330_JC86VH_FS','090927_QF82NU_FS',
-                     '120820_BD75XH_FS','100401_RH93ZU_FS','100709_GH46GU_FS','090314_KK88XB_FS','110210_FK52JU_FS']
+    name_list_KNN = ['090425_FY89SB_FS','090827_WN83DK_FS','090613_YJ67CK_FS','100926_TG85VH_FS','090622_DN86WH_FS',
+                     '100910_XF67NH_FS','100401_RH93ZU_FS','100709_GH46GU_FS','100913_CM26NH_FS','100907_KV43EH_FS']
 
 torch.manual_seed(1)
 use_cuda = torch.cuda.is_available()

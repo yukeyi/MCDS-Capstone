@@ -39,7 +39,9 @@ class Image:
             os.remove('outputpoints.txt')
         self.transformixImageFilter.SetFixedPointSetFileName(test_file)
         self.transformixImageFilter.SetMovingImage(self.moving_image)
+        print(1)
         self.transformixImageFilter.Execute()
+        print(2)
 
 class BrainImageDataset(Dataset):
     def __init__(self, dirList, register_pairs, KNN, name_list_KNN):
@@ -50,6 +52,8 @@ class BrainImageDataset(Dataset):
 
     def __getitem__(self, index):
         fix = self.data[index]
+        #if (os.path.exists("points_data_tuned_hard/" + "".join(fix) + "-" + "".join(self.register_pairs[fix]) + "-points.npy")):
+        #    return (np.array([]), np.array([]), fix, self.register_pairs[fix])
         if (self.KNN != 0):
             if (fix not in self.name_list_KNN):
                 return (np.array([]), np.array([]), fix, np.array([]))

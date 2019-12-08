@@ -20,8 +20,8 @@ def distance(point1, point2):
 def compute_KNN_score(truth, pred):
     dist = 0.0
     num_detect_points = 0
-    k = 10
-    max_margin = 20
+    k = 1
+    max_margin = 10
     for key in truth.keys():
         num_detect_points = len(pred[key])
         for i in range(len(pred[key])):
@@ -47,16 +47,53 @@ points = get_KNN_landmark()
 files= os.listdir("ground_truth")
 
 ground_truth = {}
-sift = {}
-no_sift_final = {}
-no_sift_same_step = {}
+model16_1 = {}
+model16_2 = {}
+model8_1 = {}
+model8_2 = {}
+model32_1 = {}
+model32_2 = {}
+model128_1 = {}
+model8_05 = {}
+model16_05 = {}
+model32_05 = {}
+model32_hard = {}
+model128_0 = {}
+model128_05 = {}
+
 
 for file_name in files:
     ground_truth[file_name] = np.load("ground_truth/" + file_name)
-    sift[file_name] = np.load("sift/" + file_name[:33]+"_KNN_RES.npy")
-    no_sift_final[file_name] = np.load("no_sift_final/" + file_name[:33]+"_KNN_RES.npy")
-    no_sift_same_step[file_name] = np.load("no_sift_same_step/" + file_name[:33]+"_KNN_RES.npy")
+    model16_1[file_name] = np.load("16_1epoch/" + file_name[:33] + "_KNN_RES.npy")
+    model16_2[file_name] = np.load("16_2epoch/" + file_name[:33] + "_KNN_RES.npy")
+    model8_1[file_name] = np.load("8_1epoch/" + file_name[:33] + "_KNN_RES.npy")
+    model8_2[file_name] = np.load("8_2epoch/" + file_name[:33] + "_KNN_RES.npy")
+    model32_1[file_name] = np.load("32_1epoch/" + file_name[:33] + "_KNN_RES.npy")
+    model32_2[file_name] = np.load("32_2epoch/" + file_name[:33] + "_KNN_RES.npy")
+    model128_1[file_name] = np.load("128_1epoch/" + file_name[:33] + "_KNN_RES.npy")
+    model8_05[file_name] = np.load("8_halfepoch/" + file_name[:33] + "_KNN_RES.npy")
+    model16_05[file_name] = np.load("16_halfepoch/" + file_name[:33] + "_KNN_RES.npy")
+    model32_05[file_name] = np.load("32_halfepoch/" + file_name[:33] + "_KNN_RES.npy")
+    model32_hard[file_name] = np.load("32_hard/" + file_name[:33] + "_KNN_RES.npy")
+    model128_0[file_name] = np.load("sift_initial/" + file_name[:33] + "_KNN_RES.npy")
+    model128_05[file_name] = np.load("128_halfepoch/" + file_name[:33] + "_KNN_RES.npy")
 
-print("Distance for sift ",compute_KNN_score(ground_truth, sift))
-print("Distance for no sift final ",compute_KNN_score(ground_truth, no_sift_final))
-print("Distance for no sift same step ",compute_KNN_score(ground_truth, no_sift_same_step))
+print("Distance for 8_0.5 ",compute_KNN_score(ground_truth, model8_05))
+print("Distance for 8_1 ",compute_KNN_score(ground_truth, model8_1))
+print("Distance for 8_2 ",compute_KNN_score(ground_truth, model8_2))
+print("\n")
+
+print("Distance for 16_0.5 ",compute_KNN_score(ground_truth, model16_05))
+print("Distance for 16_1 ",compute_KNN_score(ground_truth, model16_1))
+print("Distance for 16_2 ",compute_KNN_score(ground_truth, model16_2))
+print("\n")
+
+print("Distance for 32_0.5 ",compute_KNN_score(ground_truth, model32_05))
+print("Distance for 32_1 ",compute_KNN_score(ground_truth, model32_1))
+print("Distance for 32_2 ",compute_KNN_score(ground_truth, model32_2))
+print("Distance for 32_hard ",compute_KNN_score(ground_truth, model32_hard))
+print("\n")
+
+print("Distance for 128_sift_init ",compute_KNN_score(ground_truth, model128_0))
+print("Distance for 128_0.5 ",compute_KNN_score(ground_truth, model128_05))
+print("Distance for 128_1 ",compute_KNN_score(ground_truth, model128_1))

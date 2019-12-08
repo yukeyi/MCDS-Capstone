@@ -2,9 +2,55 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e688956d-a1a9-4700-b339-28bcfdecc0c4" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/analyze_KNN_result.py" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/analyze_KNN_result.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090314_KK88XB_FS-110124_JJ63PU_FS-KNN-ground-truth.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090425_FY89SB_FS-091006_YN89DU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/090425_FY89SB_FS-091006_YN89DU_FS-KNN-ground-truth.npy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090613_YJ67CK_FS-100810_NX39XU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/090613_YJ67CK_FS-100810_NX39XU_FS-KNN-ground-truth.npy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090927_QF82NU_FS-090922_FZ57YU_FS-KNN-ground-truth.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100311_RD78TU_FS-101214_KZ78TH_FS-KNN-ground-truth.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100330_JC86VH_FS-140923_BS78VP_FS-KNN-ground-truth.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100401_RH93ZU_FS-101212_QV37DU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/100401_RH93ZU_FS-101212_QV37DU_FS-KNN-ground-truth.npy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100709_GH46GU_FS-100907_HY25UU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/100709_GH46GU_FS-100907_HY25UU_FS-KNN-ground-truth.npy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/110210_FK52JU_FS-110912_FN66YK_FS-KNN-ground-truth.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/120820_BD75XH_FS-111013_HS48TU_FS-KNN-ground-truth.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090314_KK88XB_FS-110124_JJ63PU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090425_FY89SB_FS-091006_YN89DU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090613_YJ67CK_FS-100810_NX39XU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090927_QF82NU_FS-090922_FZ57YU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100311_RD78TU_FS-101214_KZ78TH_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100330_JC86VH_FS-140923_BS78VP_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100401_RH93ZU_FS-101212_QV37DU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100709_GH46GU_FS-100907_HY25UU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/110210_FK52JU_FS-110912_FN66YK_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/120820_BD75XH_FS-111013_HS48TU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090314_KK88XB_FS-110124_JJ63PU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090425_FY89SB_FS-091006_YN89DU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090613_YJ67CK_FS-100810_NX39XU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090927_QF82NU_FS-090922_FZ57YU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100311_RD78TU_FS-101214_KZ78TH_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100330_JC86VH_FS-140923_BS78VP_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100401_RH93ZU_FS-101212_QV37DU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100709_GH46GU_FS-100907_HY25UU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/110210_FK52JU_FS-110912_FN66YK_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/120820_BD75XH_FS-111013_HS48TU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/090314_KK88XB_FS-110124_JJ63PU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/090425_FY89SB_FS-091006_YN89DU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/090613_YJ67CK_FS-100810_NX39XU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/090927_QF82NU_FS-090922_FZ57YU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/100311_RD78TU_FS-101214_KZ78TH_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/100330_JC86VH_FS-140923_BS78VP_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/100401_RH93ZU_FS-101212_QV37DU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/100709_GH46GU_FS-100907_HY25UU_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/110210_FK52JU_FS-110912_FN66YK_FS_KNN_RES.npy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/KNN/sift/120820_BD75XH_FS-111013_HS48TU_FS_KNN_RES.npy" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/distance.npy" beforeDir="false" afterPath="$PROJECT_DIR$/distance.npy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/featureLearner.py" beforeDir="false" afterPath="$PROJECT_DIR$/featureLearner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/featureLearner_spl.py" beforeDir="false" afterPath="$PROJECT_DIR$/featureLearner_spl.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/feature_learner_data_loader_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/feature_learner_data_loader_util.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/loss.npy" beforeDir="false" afterPath="$PROJECT_DIR$/loss.npy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main3D_with_embedding.py" beforeDir="false" afterPath="$PROJECT_DIR$/main3D_with_embedding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plot_distance.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_distance.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,43 +62,23 @@
     <SUITE FILE_PATH="coverage/code4step3$visualize_loss.coverage" NAME="visualize_loss Coverage Results" MODIFIED="1573269846047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/code4step3$plot_distance__1_.coverage" NAME="plot_distance (1) Coverage Results" MODIFIED="1573871433775" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/model1_log" />
     <SUITE FILE_PATH="coverage/code4step3$plot_reward.coverage" NAME="plot_reward Coverage Results" MODIFIED="1571507701781" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/code4step3$analyze_KNN_result.coverage" NAME="analyze_KNN_result Coverage Results" MODIFIED="1573931366317" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/KNN" />
+    <SUITE FILE_PATH="coverage/code4step3$analyze_KNN_result.coverage" NAME="analyze_KNN_result Coverage Results" MODIFIED="1575339461263" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/KNN" />
+    <SUITE FILE_PATH="coverage/code4step3$MLP_data_process.coverage" NAME="MLP_data_process Coverage Results" MODIFIED="1575335718370" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MLP" />
     <SUITE FILE_PATH="coverage/code4step3$plot.coverage" NAME="plot Coverage Results" MODIFIED="1572375658641" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/code4step3$featureLearner.coverage" NAME="featureLearner Coverage Results" MODIFIED="1573073490276" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/code4step3$plot_distance.coverage" NAME="plot_distance Coverage Results" MODIFIED="1574264514245" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/code4step3$plot_trend.coverage" NAME="plot_trend Coverage Results" MODIFIED="1575340550546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/KNN" />
+    <SUITE FILE_PATH="coverage/code4step3$plot_distance.coverage" NAME="plot_distance Coverage Results" MODIFIED="1575377991828" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/code4step3$main3D_with_embedding.coverage" NAME="main3D_with_embedding Coverage Results" MODIFIED="1571512212174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/code4step3$generate_result.coverage" NAME="generate_result Coverage Results" MODIFIED="1575214713564" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../.." />
+    <SUITE FILE_PATH="coverage/code4step3$plot_trend__1_.coverage" NAME="plot_trend (1) Coverage Results" MODIFIED="1575341946890" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MLP" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main3D.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2609">
-              <caret line="165" column="30" selection-start-line="165" selection-start-column="30" selection-end-line="165" selection-end-column="30" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/feature_learner_model.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="15" column="34" selection-start-line="15" selection-start-column="34" selection-end-line="15" selection-end-column="34" />
-              <folding>
-                <element signature="e#0#12#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/featureLearner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="399">
-              <caret line="74" selection-start-line="74" selection-end-line="132" selection-end-column="63" />
+            <state relative-caret-position="532">
+              <caret line="39" column="4" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="4" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -60,11 +86,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/featureLearner_spl.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="229">
-              <caret line="505" column="40" selection-start-line="505" selection-start-column="26" selection-end-line="505" selection-end-column="40" />
+            <state relative-caret-position="239">
+              <caret line="92" column="30" selection-start-line="92" selection-start-column="30" selection-end-line="92" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -72,8 +98,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main3D_with_embedding.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1072">
-              <caret line="261" column="82" selection-start-line="261" selection-start-column="82" selection-end-line="261" selection-end-column="82" />
+            <state relative-caret-position="177">
+              <caret line="124" column="28" selection-start-line="124" selection-start-column="28" selection-end-line="124" selection-end-column="28" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -82,10 +108,22 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/MLP/plot_trend.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="575">
+              <caret line="40" column="22" selection-start-line="40" selection-start-column="22" selection-end-line="40" selection-end-column="22" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/plot_distance.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="46">
-              <caret line="9" column="55" lean-forward="true" selection-start-line="9" selection-start-column="55" selection-end-line="9" selection-end-column="55" />
+            <state relative-caret-position="159">
+              <caret line="39" column="14" selection-start-line="39" selection-start-column="14" selection-end-line="39" selection-end-column="14" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -94,12 +132,24 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/feature_learner_data_loader_util.py">
+        <entry file="file://$PROJECT_DIR$/KNN/analyze_KNN_result.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="29" column="42" selection-start-line="29" selection-start-column="42" selection-end-line="29" selection-end-column="42" />
+            <state relative-caret-position="-234">
+              <caret line="22" column="9" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="9" />
               <folding>
-                <element signature="e#0#9#0" expanded="true" />
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/KNN/plot_trend.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="160">
+              <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -109,36 +159,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>fix_image</find>
-      <find>save</find>
-      <find>batch_id</find>
+      <find>summary</find>
+      <find>loss_save_interval</find>
+      <find>k</find>
+      <find>load</find>
+      <find>torch.save</find>
+      <find>try</find>
+      <find>output</find>
+      <find>ground</find>
+      <find>timeStr</find>
       <find>KNN</find>
-      <find>d</find>
-      <find>name_list_KNN</find>
-      <find>BrainParameterMaps</find>
-      <find>Brain</find>
-      <find>points_data</find>
-      <find>torch.lo</find>
-      <find>distance</find>
-      <find>outputpoints.txt</find>
-      <find>1.6</find>
-      <find>0.8</find>
-      <find>2.0</find>
-      <find>print</find>
-      <find>tuned</find>
-      <find>tun</find>
-      <find>BrainParameterMap</find>
-      <find>.margin</find>
-      <find>final_size</find>
-      <find>final_channel</find>
-      <find>BrainParameter</find>
       <find>exit</find>
-      <find>hardMode</find>
-      <find>good_list</find>
-      <find>find_postive_negative_points</find>
+      <find>save_path</find>
       <find>np.save</find>
-      <find>1350</find>
-      <find>distanceMargin</find>
+      <find>BatchNorm1d</find>
+      <find>Dataset</find>
+      <find>opt</find>
+      <find>MyCustomTrainDataset</find>
+      <find>time</find>
+      <find>train_loss</find>
+      <find>dev_loss</find>
+      <find>dev_acc</find>
+      <find>dice</find>
+      <find>MLP</find>
+      <find>5000</find>
+      <find>use_sam</find>
+      <find>log_interval</find>
+      <find>int32</find>
+      <find>load_model</find>
+      <find>test</find>
+      <find>save</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -158,20 +208,26 @@
         <option value="$PROJECT_DIR$/visualize_loss.py" />
         <option value="$PROJECT_DIR$/model1_log/plot_distance.py" />
         <option value="$PROJECT_DIR$/unet_data_loader_util.py" />
-        <option value="$PROJECT_DIR$/KNN/analyze_KNN_result.py" />
-        <option value="$PROJECT_DIR$/feature_learner_data_loader_util.py" />
-        <option value="$PROJECT_DIR$/main3D_with_embedding.py" />
-        <option value="$PROJECT_DIR$/plot_distance.py" />
         <option value="$PROJECT_DIR$/feature_learner_model.py" />
-        <option value="$PROJECT_DIR$/featureLearner.py" />
         <option value="$PROJECT_DIR$/featureLearner_spl.py" />
+        <option value="$PROJECT_DIR$/feature_learner_data_loader_util.py" />
+        <option value="$PROJECT_DIR$/featureLearner.py" />
+        <option value="$PROJECT_DIR$/../../generate_result.py" />
+        <option value="$PROJECT_DIR$/../../cmu/11785/hw1p2/code/main.py" />
+        <option value="$PROJECT_DIR$/MLP_data_process.py" />
+        <option value="$PROJECT_DIR$/main3D_with_embedding.py" />
+        <option value="$PROJECT_DIR$/MLP/MLP_data_process.py" />
+        <option value="$PROJECT_DIR$/KNN/analyze_KNN_result.py" />
+        <option value="$PROJECT_DIR$/KNN/plot_trend.py" />
+        <option value="$PROJECT_DIR$/MLP/plot_trend.py" />
+        <option value="$PROJECT_DIR$/plot_distance.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="y" value="23" />
-    <option name="width" value="1440" />
-    <option name="height" value="828" />
+    <option name="width" value="1920" />
+    <option name="height" value="1008" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -179,7 +235,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -195,12 +250,24 @@
             <path>
               <item name="code4step3" type="b2602c69:ProjectViewProjectNode" />
               <item name="code4step3" type="462c0819:PsiDirectoryNode" />
+              <item name="MLP" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="code4step3" type="b2602c69:ProjectViewProjectNode" />
+              <item name="code4step3" type="462c0819:PsiDirectoryNode" />
+              <item name="MLP" type="462c0819:PsiDirectoryNode" />
+              <item name="sample_data" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="code4step3" type="b2602c69:ProjectViewProjectNode" />
+              <item name="code4step3" type="462c0819:PsiDirectoryNode" />
               <item name="model1_log" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -222,6 +289,28 @@
     </option>
   </component>
   <component name="RunManager" selected="Python.plot_distance">
+    <configuration name="MLP_data_process" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="code4step3" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/MLP" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MLP/MLP_data_process.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="analyze_KNN_result" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="code4step3" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -236,50 +325,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/KNN/analyze_KNN_result.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="featureLearner" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="code4step3" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/featureLearner.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="plot_distance (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="code4step3" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model1_log" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model1_log/plot_distance.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -332,7 +377,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="visualize_loss" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="plot_trend (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="code4step3" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -340,12 +385,34 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/MLP" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/visualize_loss.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MLP/plot_trend.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="plot_trend" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="code4step3" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/KNN" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/KNN/plot_trend.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -356,19 +423,19 @@
     </configuration>
     <list>
       <item itemvalue="Python.plot_reward" />
-      <item itemvalue="Python.featureLearner" />
-      <item itemvalue="Python.plot_distance (1)" />
       <item itemvalue="Python.plot_distance" />
-      <item itemvalue="Python.visualize_loss" />
       <item itemvalue="Python.analyze_KNN_result" />
+      <item itemvalue="Python.MLP_data_process" />
+      <item itemvalue="Python.plot_trend" />
+      <item itemvalue="Python.plot_trend (1)" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.plot_distance" />
+        <item itemvalue="Python.plot_trend (1)" />
+        <item itemvalue="Python.plot_trend" />
         <item itemvalue="Python.analyze_KNN_result" />
-        <item itemvalue="Python.plot_distance (1)" />
-        <item itemvalue="Python.visualize_loss" />
-        <item itemvalue="Python.featureLearner" />
+        <item itemvalue="Python.MLP_data_process" />
       </list>
     </recent_temporary>
   </component>
@@ -386,36 +453,47 @@
       <workItem from="1571510819337" duration="5199000" />
       <workItem from="1572111195609" duration="17804000" />
       <workItem from="1572999059995" duration="35728000" />
-      <workItem from="1573584497053" duration="56001000" />
+      <workItem from="1573584497053" duration="61615000" />
+      <workItem from="1574392099692" duration="26511000" />
+      <workItem from="1575309501589" duration="20120000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="124873000" />
+    <option name="totallyTimeSpent" value="177118000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="828" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19599427" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20100144" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.25543478" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.39266303" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.2853261" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39067358" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.3292683" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="11" />
-      <window_info anchor="bottom" id="Python Console" order="12" />
+      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32971507" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info active="true" anchor="right" id="SciView" order="3" visible="true" weight="0.4055794" />
+      <window_info active="true" anchor="right" id="SciView" order="3" visible="true" weight="0.39842632" />
       <window_info anchor="right" id="Database" order="4" />
     </layout>
   </component>
@@ -427,27 +505,27 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/featureLearner.py</url>
-          <line>347</line>
+          <line>353</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/featureLearner.py</url>
-          <line>147</line>
+          <line>153</line>
           <option name="timeStamp" value="35" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/featureLearner.py</url>
-          <line>149</line>
+          <line>155</line>
           <option name="timeStamp" value="36" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/featureLearner.py</url>
-          <line>150</line>
+          <line>156</line>
           <option name="timeStamp" value="37" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/plot_distance.py</url>
-          <line>27</line>
+          <line>35</line>
           <option name="timeStamp" value="40" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -456,83 +534,87 @@
           <option name="timeStamp" value="43" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/plot_distance.py</url>
+          <line>32</line>
+          <option name="timeStamp" value="61" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/KNN/analyze_KNN_result.py</url>
-          <line>36</line>
-          <option name="timeStamp" value="49" />
+          <line>81</line>
+          <option name="timeStamp" value="62" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/plot_distance.py</url>
-          <line>24</line>
-          <option name="timeStamp" value="61" />
+          <line>9</line>
+          <option name="timeStamp" value="63" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../../generate_result.py</url>
+          <line>11</line>
+          <option name="timeStamp" value="65" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/KNN/analyze_KNN_result.py</url>
+          <line>78</line>
+          <option name="timeStamp" value="82" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
-        <watch expression="truth[key]" language="Python" />
-        <watch expression="truth_point" language="Python" />
-        <watch expression="np.sqrt(dist)" language="Python" />
-        <watch expression="file_name[:33]+&quot;_KNN_RES.npy&quot;" language="Python" />
-        <watch expression="len(pred[key])" language="Python" />
-        <watch expression="pred[key][i]" language="Python" />
-        <watch expression="compute_position(pred[key][i][0])" language="Python" />
-        <watch expression="(10*len(truth.keys())*len(pred[truth.keys()[0]]))" language="Python" />
-        <watch expression="truth.keys().first" language="Python" />
-        <watch expression="len(truth.keys())" language="Python" />
-        <watch expression="pred[key][i]" language="Python" />
-        <watch expression="len(truth.keys())*num_detect_points" language="Python" />
+        <watch expression="(predictions == 42)" language="Python" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
       <expression>
-        <expression-string>len(truth.keys())*num_detect_points</expression-string>
+        <expression-string>(predictions == 42)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>truth_point</expression-string>
+        <expression-string>(predictions == 42)+(predictions == 42)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>pred[key][i]</expression-string>
+        <expression-string>predictions == 42</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>len(truth.keys())</expression-string>
+        <expression-string>((predictions == i) + (ground_truth == i))</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>truth.keys().first</expression-string>
+        <expression-string>(((predictions == 14) + (ground_truth == 14)) == 2).sum()</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>truth.keys()</expression-string>
+        <expression-string>(((predictions == i) + (ground_truth == i)) == 2).sum()</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>(10*len(truth.keys())*len(pred[truth.keys()[0]]))</expression-string>
+        <expression-string>((predictions == i) + (ground_truth == i)) == 2)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>np.sqrt(dist)</expression-string>
+        <expression-string>(predictions == i) and (ground_truth == i)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>truth[key]</expression-string>
+        <expression-string>ground_truth == i</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>compute_position(pred[key][i][0])</expression-string>
+        <expression-string>ground_truth == i)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -569,16 +651,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/log&amp;visualization/plot_reward.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="95">
-          <caret line="5" column="24" selection-start-line="5" selection-start-column="24" selection-end-line="5" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/log&amp;visualization/plot_reward.py" />
     <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/utils/data/sampler.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="719">
@@ -640,33 +713,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../10703-HW5/mpc.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="173" column="102" selection-start-line="173" selection-start-column="102" selection-end-line="173" selection-end-column="102" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///anaconda3/lib/python3.6/site-packages/numpy/lib/npyio.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="427" selection-start-line="427" selection-end-line="427" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/KNN/analyze_KNN_result.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="82">
-          <caret line="17" column="24" selection-start-line="17" selection-start-column="24" selection-end-line="17" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../../10703-HW5/mpc.py" />
     <entry file="file://$PROJECT_DIR$/model1_log/plot_distance.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="418">
@@ -677,10 +724,44 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../F19_hw6/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/../../F19_hw6/arm_env.py" />
+    <entry file="file://$PROJECT_DIR$/../../F19_hw6/controllers.py" />
+    <entry file="file://$PROJECT_DIR$/../../F19_hw6/ilqr.py" />
+    <entry file="file://$PROJECT_DIR$/feature_learner_data_loader_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="589">
+          <caret line="55" column="9" selection-start-line="55" selection-start-column="9" selection-end-line="55" selection-end-column="9" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../11777-Youtube-8M/export_model.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/SimpleITK/SimpleITK.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="133">
+          <caret line="8204" lean-forward="true" selection-start-line="8204" selection-end-line="8204" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/unet_data_loader_util.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="138">
-          <caret line="48" selection-start-line="48" selection-end-line="48" />
+        <state relative-caret-position="230">
+          <caret line="28" column="4" selection-start-line="28" selection-start-column="4" selection-end-line="28" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../generate_result.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="5" column="28" selection-start-line="5" selection-start-column="28" selection-end-line="5" selection-end-column="28" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
@@ -689,18 +770,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main3D.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2609">
-          <caret line="165" column="30" selection-start-line="165" selection-start-column="30" selection-end-line="165" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/feature_learner_data_loader_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="29" column="42" selection-start-line="29" selection-start-column="42" selection-end-line="29" selection-end-column="42" />
+        <state relative-caret-position="1292">
+          <caret line="79" column="17" selection-start-line="79" selection-start-column="17" selection-end-line="79" selection-end-column="17" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -709,8 +780,124 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/feature_learner_model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="15" column="34" selection-start-line="15" selection-start-column="34" selection-end-line="15" selection-end-column="34" />
+        <state relative-caret-position="1007">
+          <caret line="55" column="23" selection-start-line="55" selection-start-column="23" selection-end-line="55" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/featureLearner.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="532">
+          <caret line="39" column="4" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/numpy/lib/npyio.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="141">
+          <caret line="427" selection-start-line="427" selection-end-line="427" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/utils/data/dataset.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="57">
+          <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../cmu/11785/hw1p2/code/wsj_loader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="57">
+          <caret line="3" column="30" selection-start-line="3" selection-end-line="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/nn/modules/module.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="141">
+          <caret line="534" selection-start-line="534" selection-end-line="534" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MLP_data_process.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="453">
+          <caret line="194" column="11" lean-forward="true" selection-start-line="194" selection-start-column="11" selection-end-line="194" selection-end-column="11" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#135#237#0" />
+            <element signature="e#197#997#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/torch/nn/functional.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="92">
+          <caret line="1789" selection-start-line="1789" selection-end-line="1789" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../cmu/11785/hw1p2/code/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="148" selection-start-line="148" selection-end-line="149" selection-end-column="78" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../10703-hw6/ilqr.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3553" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/featureLearner_spl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="239">
+          <caret line="92" column="30" selection-start-line="92" selection-start-column="30" selection-end-line="92" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/numpy/lib/format.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="767" selection-start-line="767" selection-end-line="767" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/KNN/analyze_KNN_result.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-234">
+          <caret line="22" column="9" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="9" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/KNN/plot_trend.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="160">
+          <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MLP/MLP_data_process.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="41">
+          <caret line="188" column="44" selection-start-line="188" selection-start-column="44" selection-end-line="188" selection-end-column="44" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
@@ -719,56 +906,38 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main3D_with_embedding.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1072">
-          <caret line="261" column="82" selection-start-line="261" selection-start-column="82" selection-end-line="261" selection-end-column="82" />
+        <state relative-caret-position="177">
+          <caret line="124" column="28" selection-start-line="124" selection-start-column="28" selection-end-line="124" selection-end-column="28" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../F19_hw6/__init__.py">
+    <entry file="file://$PROJECT_DIR$/MLP/plot_trend.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#42#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../F19_hw6/arm_env.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../F19_hw6/controllers.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../F19_hw6/ilqr.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/featureLearner.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="74" selection-start-line="74" selection-end-line="132" selection-end-column="63" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/plot_distance.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="46">
-          <caret line="9" column="55" lean-forward="true" selection-start-line="9" selection-start-column="55" selection-end-line="9" selection-end-column="55" />
+        <state relative-caret-position="575">
+          <caret line="40" column="22" selection-start-line="40" selection-start-column="22" selection-end-line="40" selection-end-column="22" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/featureLearner_spl.py">
+    <entry file="file:///anaconda3/lib/python3.6/site-packages/matplotlib/pyplot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="229">
-          <caret line="505" column="40" selection-start-line="505" selection-start-column="26" selection-end-line="505" selection-end-column="40" />
+        <state relative-caret-position="243">
+          <caret line="3029" column="4" selection-start-line="3029" selection-start-column="4" selection-end-line="3029" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plot_distance.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="159">
+          <caret line="39" column="14" selection-start-line="39" selection-start-column="14" selection-end-line="39" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

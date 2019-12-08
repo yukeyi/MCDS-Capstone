@@ -22,18 +22,18 @@ def load_pairs():
     if(args.KNN != 0):
         register_pairs = {}
         register_pairs['090425_FY89SB_FS'] = '091006_YN89DU_FS'
-        register_pairs['100311_RD78TU_FS'] = '101214_KZ78TH_FS'
+        register_pairs['090827_WN83DK_FS'] = '100209_HK82WU_FS'
         register_pairs['090613_YJ67CK_FS'] = '100810_NX39XU_FS'
-        register_pairs['100330_JC86VH_FS'] = '140923_BS78VP_FS'
-        register_pairs['090927_QF82NU_FS'] = '090922_FZ57YU_FS'
-        register_pairs['120820_BD75XH_FS'] = '111013_HS48TU_FS'
+        register_pairs['100926_TG85VH_FS'] = '100816_CS54HB_FS'
+        register_pairs['090622_DN86WH_FS'] = '090822_UF93QK_FS'
+        register_pairs['100910_XF67NH_FS'] = '090519_AA89HU_FS'
         register_pairs['100401_RH93ZU_FS'] = '101212_QV37DU_FS'
         register_pairs['100709_GH46GU_FS'] = '100907_HY25UU_FS'
-        register_pairs['090314_KK88XB_FS'] = '110124_JJ63PU_FS'
-        register_pairs['110210_FK52JU_FS'] = '110912_FN66YK_FS'
+        register_pairs['100913_CM26NH_FS'] = '101013_EM45RU_FS'
+        register_pairs['100907_KV43EH_FS'] = '120124_HK35WP_FS'
     else:
         register_pairs = {}
-        for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMaps"):
+        for root, directories, filenames in os.walk(ROOT_DIR +"BrainParameterMapsTuned"):
             for pairname in directories:
                 images = pairname.split("-")
                 assert(len(images)==2)
@@ -83,7 +83,7 @@ class BrainImageDataset(Dataset):
         label = label[0]
         if(args.KNN > 0 and batch_id % 2 == 1):
             fix_image = copy.deepcopy(image)
-        torch.backends.cudnn.enabled = False
+        torch.backends.cudnn.enabled = True
         image = torch.tensor(abstract_feature(image)) # this operation cannot be put in 16G machine
         #image = abstract_feature(image)
         torch.backends.cudnn.enabled = True
@@ -94,15 +94,28 @@ class BrainImageDataset(Dataset):
             else:
                 KNN_res = []
                 cnt = 1
-                for point in test_points:
-                    #print(cnt)
-                    cnt += 1
-                    if(fix_image[:,point[0],point[1],point[2]].sum() == 0):
-                        continue
-                    point_res = find_neighbor(image.cpu().numpy(), point, fix_feature[:,point[0],point[1],point[2]])
-                    KNN_res.append(point_res)
-                print("already saved the KNN res")
-                np.save(timeStr+"/"+fix_name+"-"+name+"_KNN_RES",KNN_res)
+                if(os.path.exists(timeStr+"/"+fix_name+"-"+name+"_KNN_RES")):
+                    print("Previous Done")
+                else:
+                    for point in test_points:
+                        #print(cnt)
+                        cnt += 1
+                        if(fix_image[:,point[0],point[1],point[2]].sum() == 0):
+                            continue
+                        point_res = find_neighbor(image.cpu().numpy(), point, fix_feature[:,point[0],point[1],point[2]])
+                        KNN_res.append(point_res)
+                    print("already saved the KNN res")
+                    np.save(timeStr+"/"+fix_name+"-"+name+"_KNN_RES",KNN_res)
+        if(args.MLP):
+            image = image.cpu().numpy()
+            #print(image.shape)
+            #print(label.shape)
+            #exit()
+            save_image = image[:,50:200,50:200,50:200].reshape((32,-1))
+            save_label = label[50:200,50:200,50:200].reshape(-1)
+            np.save(timeStr+"/MLP_image.npy",save_image.T)
+            np.save(timeStr+"/MLP_label.npy",save_label)
+            exit()
         return (image, label)
 
     def __len__(self):
@@ -110,16 +123,17 @@ class BrainImageDataset(Dataset):
 
 
 def abstract_feature(image):
-    #print(image.shape)
 
-    feature = np.zeros((128,256,256,256))
+    feature = np.zeros((args.final_channel,256,256,256))
     with torch.no_grad():
         for x in range(2):
             for y in range(2):
                 for z in range(2):
                     #print(x,y,z)
+                    temp = torch.tensor([image[:,x*128:x*128+128,y*128:y*128+128,z*128:z*128+128]]).to(device)
+                    #print(temp.shape)
                     feature[:,x*128:x*128+128,y*128:y*128+128,z*128:z*128+128] = \
-                        copy.deepcopy(fl_model(torch.tensor([image[:,x*128:x*128+128,y*128:y*128+128,z*128:z*128+128]]).to(device))[0].cpu())
+                        copy.deepcopy(fl_model(temp)[0].cpu())
 
     #print(feature.shape)
     return feature
@@ -245,10 +259,12 @@ parser.add_argument('--num_dev', type=int, default=5, metavar='N',
                     help='number of data for evaluation')
 parser.add_argument('--KNN', type=int, default=0, metavar='N',
                     help='if KNN is not 0, we generate KNN matching for each image, K is set')
+parser.add_argument('--MLP', type=int, default=1, metavar='N',
+                    help='if MLP is set as 1, only save embedding')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                     help='learning rate (default: 0.001)')
 parser.add_argument('--augmentation', type=float, default=10.0, metavar='LR',
-                    help='weight for lebeled object')
+                    help='weight for labeled object')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--channel-base', type=int, default=8, metavar='CB',
@@ -259,10 +275,14 @@ parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
 parser.add_argument('--test-model', type=str, default=None, metavar='N',
                     help='If test-model has a name, do not do training, just testing on dev and train set')
-parser.add_argument('--load-model', type=str, default='2019-11-15-23-44-38/model1450.pt', metavar='N',
+parser.add_argument('--load-model', type=str, default=None, metavar='N',
                     help='If load-model has a name, use pretrained model')
-parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-14-57/model559.pt', metavar='N',
+parser.add_argument('--embedding-model', type=str, default='2019-11-18-23-29-15/model11169.pt', metavar='N',
                     help='pretrained feature learning model')
+parser.add_argument('--final_channel', type=int, default=32, metavar='LR',
+                    help='final_channel')
+parser.add_argument('--save_path', type=str, default="/home/yukeyi/", metavar='LR',
+                    help='path to save')
 #parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-14-57/model19.pt', metavar='N',
 #                    help='pretrained feature learning model')
 #parser.add_argument('--embedding-model', type=str, default='2019-11-11-12-58-10/model1039.pt', metavar='N',
@@ -278,8 +298,9 @@ label_map, label_list = get_label_map()
 #store all pairs of registration
 register_pairs = load_pairs()
 
-timeStr = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+timeStr = args.save_path+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 os.mkdir(timeStr)
+#timeStr = "2019-11-27-15-47-31"
 writer = SummaryWriter(timeStr+'/log')
 save_model_filename = timeStr + "/model"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

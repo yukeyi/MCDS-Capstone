@@ -2,55 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e688956d-a1a9-4700-b339-28bcfdecc0c4" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/analyze_KNN_result.py" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/analyze_KNN_result.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090314_KK88XB_FS-110124_JJ63PU_FS-KNN-ground-truth.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090425_FY89SB_FS-091006_YN89DU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/090425_FY89SB_FS-091006_YN89DU_FS-KNN-ground-truth.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090613_YJ67CK_FS-100810_NX39XU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/090613_YJ67CK_FS-100810_NX39XU_FS-KNN-ground-truth.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/090927_QF82NU_FS-090922_FZ57YU_FS-KNN-ground-truth.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100311_RD78TU_FS-101214_KZ78TH_FS-KNN-ground-truth.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100330_JC86VH_FS-140923_BS78VP_FS-KNN-ground-truth.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100401_RH93ZU_FS-101212_QV37DU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/100401_RH93ZU_FS-101212_QV37DU_FS-KNN-ground-truth.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/100709_GH46GU_FS-100907_HY25UU_FS-KNN-ground-truth.npy" beforeDir="false" afterPath="$PROJECT_DIR$/KNN/ground_truth/100709_GH46GU_FS-100907_HY25UU_FS-KNN-ground-truth.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/110210_FK52JU_FS-110912_FN66YK_FS-KNN-ground-truth.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/ground_truth/120820_BD75XH_FS-111013_HS48TU_FS-KNN-ground-truth.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090314_KK88XB_FS-110124_JJ63PU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090425_FY89SB_FS-091006_YN89DU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090613_YJ67CK_FS-100810_NX39XU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/090927_QF82NU_FS-090922_FZ57YU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100311_RD78TU_FS-101214_KZ78TH_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100330_JC86VH_FS-140923_BS78VP_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100401_RH93ZU_FS-101212_QV37DU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/100709_GH46GU_FS-100907_HY25UU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/110210_FK52JU_FS-110912_FN66YK_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_final/120820_BD75XH_FS-111013_HS48TU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090314_KK88XB_FS-110124_JJ63PU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090425_FY89SB_FS-091006_YN89DU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090613_YJ67CK_FS-100810_NX39XU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/090927_QF82NU_FS-090922_FZ57YU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100311_RD78TU_FS-101214_KZ78TH_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100330_JC86VH_FS-140923_BS78VP_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100401_RH93ZU_FS-101212_QV37DU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/100709_GH46GU_FS-100907_HY25UU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/110210_FK52JU_FS-110912_FN66YK_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/no_sift_same_step/120820_BD75XH_FS-111013_HS48TU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/090314_KK88XB_FS-110124_JJ63PU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/090425_FY89SB_FS-091006_YN89DU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/090613_YJ67CK_FS-100810_NX39XU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/090927_QF82NU_FS-090922_FZ57YU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/100311_RD78TU_FS-101214_KZ78TH_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/100330_JC86VH_FS-140923_BS78VP_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/100401_RH93ZU_FS-101212_QV37DU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/100709_GH46GU_FS-100907_HY25UU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/110210_FK52JU_FS-110912_FN66YK_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/KNN/sift/120820_BD75XH_FS-111013_HS48TU_FS_KNN_RES.npy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/distance.npy" beforeDir="false" afterPath="$PROJECT_DIR$/distance.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/featureLearner.py" beforeDir="false" afterPath="$PROJECT_DIR$/featureLearner.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/featureLearner_spl.py" beforeDir="false" afterPath="$PROJECT_DIR$/featureLearner_spl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature_learner_data_loader_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/feature_learner_data_loader_util.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/loss.npy" beforeDir="false" afterPath="$PROJECT_DIR$/loss.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main3D_with_embedding.py" beforeDir="false" afterPath="$PROJECT_DIR$/main3D_with_embedding.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plot_distance.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_distance.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -74,11 +26,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/featureLearner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="532">
-              <caret line="39" column="4" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="4" />
+            <state relative-caret-position="163">
+              <caret line="319" column="15" lean-forward="true" selection-start-line="319" selection-start-column="15" selection-end-line="319" selection-end-column="29" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -120,18 +72,6 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plot_distance.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="377">
-              <caret line="39" column="14" selection-start-line="39" selection-start-column="14" selection-end-line="39" selection-end-column="14" />
-              <folding>
-                <element signature="e#0#31#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../../generate_result.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="95">
@@ -264,17 +204,6 @@
               <item name="code4step3" type="b2602c69:ProjectViewProjectNode" />
               <item name="code4step3" type="462c0819:PsiDirectoryNode" />
               <item name="MLP" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="code4step3" type="b2602c69:ProjectViewProjectNode" />
-              <item name="code4step3" type="462c0819:PsiDirectoryNode" />
-              <item name="MLP" type="462c0819:PsiDirectoryNode" />
-              <item name="sample_data" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="code4step3" type="b2602c69:ProjectViewProjectNode" />
-              <item name="code4step3" type="462c0819:PsiDirectoryNode" />
-              <item name="model1_log" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -468,12 +397,12 @@
       <workItem from="1573584497053" duration="61615000" />
       <workItem from="1574392099692" duration="26511000" />
       <workItem from="1575309501589" duration="20120000" />
-      <workItem from="1575816143487" duration="501000" />
+      <workItem from="1575816143487" duration="766000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="177619000" />
+    <option name="totallyTimeSpent" value="177884000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -488,7 +417,7 @@
     <frame x="0" y="23" width="1440" height="828" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20386267" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20386267" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -538,29 +467,14 @@
           <option name="timeStamp" value="37" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/plot_distance.py</url>
-          <line>35</line>
-          <option name="timeStamp" value="40" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/model1_log/plot_distance.py</url>
           <line>20</line>
           <option name="timeStamp" value="43" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/plot_distance.py</url>
-          <line>32</line>
-          <option name="timeStamp" value="61" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/KNN/analyze_KNN_result.py</url>
           <line>81</line>
           <option name="timeStamp" value="62" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/plot_distance.py</url>
-          <line>9</line>
-          <option name="timeStamp" value="63" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../../generate_result.py</url>
@@ -853,16 +767,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/featureLearner.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="532">
-          <caret line="39" column="4" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="4" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/featureLearner_spl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1558">
@@ -936,6 +840,16 @@
           <caret line="5" column="28" selection-start-line="5" selection-start-column="28" selection-end-line="5" selection-end-column="28" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/featureLearner.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="163">
+          <caret line="319" column="15" lean-forward="true" selection-start-line="319" selection-start-column="15" selection-end-line="319" selection-end-column="29" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>

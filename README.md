@@ -28,5 +28,34 @@ The goal of the project is to improve the performance of U-Net, a state-of-the-a
 + slurm: code for running slurm job.
 
 ## 3. Steps for Reproducing:
-(a) We first register the images using … (b) Then we tried … to find correspondences, and we run into the issue that… and we solve it by … (c)Before training the feature learning network, we pertained it by minimizing the distance between output features and SIFT features. Then we borrow the idea of correspondence contrastive loss from universal correspondence network to train the feature learner network. Feature learner encourages the positive pairs to be close and negative pairs to be far from each other in the feature space. Positive pairs are selected using point correspondence from self-registration results, and negative pairs are selected in a dynamic manner. First, we feed the network with “easy” negative points, which are at least 20 apart from each other. Then we feed the network with negative point that are closer to each other. After obtaining the feature embedding of the brain data, we use it as the input to U-net. 
+Here we give briefly instructions about how to reproduce main results of our project. Hyper-parameters and their default values are self-explained in argument parser.
+
+#### Interpretability
+
+
+#### Registration
+- We first register the images using … 
+- Then we tried … to find correspondences, and we run into the issue that… and we solve it by … 
+
+#### Pretrain with SIFT
+- Before training the feature learning network, we pertained it by minimizing the distance between output features and SIFT features using file "featureLearner.py" with parameter: args.sift = 1.
+
+#### Self-supervised learning
+
+- Then we borrow the idea of correspondence contrastive loss from universal correspondence network to train the feature learner network. Feature learner encourages the positive pairs to be close and negative pairs to be far from each other in the feature space. Positive pairs are selected using point correspondence from self-registration results, and negative pairs are selected in a dynamic manner. First, we feed the network with “easy” negative points, which are at least 20 apart from each other. Then we feed the network with negative point that are closer to each other.
+- Run "featureLearner.py" for training. In order to switch easy mode and hard mode, change parameter args.hardMode.
+- For experiment that smoothly, gradually increase difficulty of negative pairs: run "featureLearner_spl.py".
+
+#### KNN evaluation
+- We evaluate the quality of embedding with one-of-the-best K-NN method.
+- Run "main3D_with_embedding.py" with args.KNN = 1 to genrate ground-truth (from registration) corresponding pairs.
+- Run "featureLearner.py" with to genrate retrieved (from preloaded embedding) corresponding pairs.
+- Run "KNN/analyze_KNN_result.py" to compute K-NN metrics.
+
+#### Baseline training
+- Run "main3D.py".
+
+#### Train Unet with embedding
+- After obtaining the feature embedding of the brain data, we use it as the input to 3D Unet.
+- Run "main3D_with_embedding.py".
 

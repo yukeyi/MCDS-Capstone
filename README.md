@@ -31,7 +31,11 @@ The goal of the project is to improve the performance of U-Net, a state-of-the-a
 Here we give briefly instructions about how to reproduce main results of our project. Hyper-parameters and their default values are self-explained in argument parser.
 
 #### Interpretability
-
+- For interpretability, we experimented on the Google Streetview(Pittsburgh vs. NYC) dataset to establish a binary image classification problem.
+- We used a pretrained Resnet18 and fine tuned on this dataset.
+- To interpret the convolutional layers, we applied the Guided Grad CAM method.
+- To interpret the final fully connected layer, we applied the DeepMiner framework.
+- However, because we want to focus on image segmentation and this methods cannot be directly applied, we instead went forward with KNN evaluation.
 
 #### Registration
 - We first register the images using … 
